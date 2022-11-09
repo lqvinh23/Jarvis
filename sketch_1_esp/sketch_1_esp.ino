@@ -79,49 +79,57 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
   StaticJsonDocument<256> data;
   deserializeJson(data, payload, length);
   String method1 = data["method"].as<String>();
-  if (method1 == "livingroomLight")
-  {
-    if (data["params"] == true)
-    {
-      doc["livingroomLight"] = 1;
-      serializeJson(doc, mega);
-      String payload01 = "{\"livingroomLight\":\"1\"}";
-      char attributes01[100];
-      payload01.toCharArray( attributes01, 100 );
-      client.publish( "v1/devices/me/attributes", attributes01 );
-    }
-    else if (data["params"] == false)
-    {
-      doc["livingroomLight"] = 0;
-      serializeJson(doc, mega);
-      String payload01 = "{\"livingroomLight\":\"0\"}";
-      char attributes01[100];
-      payload01.toCharArray( attributes01, 100 );
-      client.publish( "v1/devices/me/attributes", attributes01 );
-    }
-  }
 
-  if (method1 == "frontDoor")
-  {
-    if (data["params"] == true)
-    {
-      doc["frontDoor"] = 1;
-      serializeJson(doc, mega);
-      String payload02 = "{\"frontDoor\":\"1\"}";
-      char attributes02[100];
-      payload02.toCharArray( attributes02, 100 );
-      client.publish( "v1/devices/me/attributes", attributes02 );
-    }
-    else if (data["params"] == false)
-    {
-      doc["frontDoor"] = 0;
-      serializeJson(doc, mega);
-      String payload02 = "{\"frontDoor\":\"0\"}";
-      char attributes02[100];
-      payload02.toCharArray( attributes02, 100 );
-      client.publish( "v1/devices/me/attributes", attributes02 );
-    }
-  }
+  doc[method1] = (int)data["params"];
+  serializeJson(doc, mega);
+  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
+  char attributes01[100];
+  payload01.toCharArray( attributes01, 100 );
+  client.publish( "v1/devices/me/attributes", attributes01 );
+
+  //  if (method1 == "livingroomLight")
+  //  {
+  //    if (data["params"] == true)
+  //    {
+  //      doc["livingroomLight"] = 1;
+  //      serializeJson(doc, mega);
+  //      String payload01 = "{\"livingroomLight\":\"1\"}";
+  //      char attributes01[100];
+  //      payload01.toCharArray( attributes01, 100 );
+  //      client.publish( "v1/devices/me/attributes", attributes01 );
+  //    }
+  //    else if (data["params"] == false)
+  //    {
+  //      doc["livingroomLight"] = 0;
+  //      serializeJson(doc, mega);
+  //      String payload01 = "{\"livingroomLight\":\"0\"}";
+  //      char attributes01[100];
+  //      payload01.toCharArray( attributes01, 100 );
+  //      client.publish( "v1/devices/me/attributes", attributes01 );
+  //    }
+  //  }
+  //
+  //  if (method1 == "frontDoor")
+  //  {
+  //    if (data["params"] == true)
+  //    {
+  //      doc["frontDoor"] = 1;
+  //      serializeJson(doc, mega);
+  //      String payload02 = "{\"frontDoor\":\"1\"}";
+  //      char attributes02[100];
+  //      payload02.toCharArray( attributes02, 100 );
+  //      client.publish( "v1/devices/me/attributes", attributes02 );
+  //    }
+  //    else if (data["params"] == false)
+  //    {
+  //      doc["frontDoor"] = 0;
+  //      serializeJson(doc, mega);
+  //      String payload02 = "{\"frontDoor\":\"0\"}";
+  //      char attributes02[100];
+  //      payload02.toCharArray( attributes02, 100 );
+  //      client.publish( "v1/devices/me/attributes", attributes02 );
+  //    }
+  //  }
 }
 
 void SendDataToThingsboard(int livingroomLight, int frontDoor, float humidity, float temperature)
