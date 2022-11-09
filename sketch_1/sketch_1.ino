@@ -19,6 +19,8 @@ StaticJsonDocument<256> doc;
 #define theftMode 34
 #define speaker 36
 #define speakerBtn 38
+#define gasSensor 39
+#define alertLight 40
 
 float lastMillis = 0;
 
@@ -63,6 +65,7 @@ void setup()
   doc["theftMode"] = 0;
   doc["theftDetect"] = 0;
   doc["speaker"] = 0;
+  doc["gasLeak"] = 0;
   
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -81,10 +84,12 @@ void setup()
   pinMode(li_lightBtn, INPUT_PULLUP);
   pinMode(pirBtn, INPUT_PULLUP);
   pinMode(speakerBtn, INPUT_PULLUP);
+  pinMode(gasSensor, INPUT_PULLUP);
   pinMode(pirPin, INPUT);
   pinMode(li_light, OUTPUT);
   pinMode(theftMode, OUTPUT);
   pinMode(speaker, OUTPUT);
+  pinMode(alertLight, OUTPUT);
 
   //  for(i=0 ; i<sizeof(code);i++){        //When you upload the code the first time keep it commented
   //    EEPROM.get(i, code[i]);             //Upload the code and change it to store it in the EEPROM
@@ -114,6 +119,15 @@ void ReadSensor() {
   if (digitalRead(pirPin) == HIGH) {
     doc["theftDetect"] = 1;
     digitalWrite(speaker, theftSpeaker);
+    serializeJson(doc, Serial1);
+  }
+
+  // Gas sensor
+  if (digitalRead(gasSensor) == HIGH) {
+    doc["gasLeak"] = 1;
+    digitalWrite(speaker, 1);
+    doc["speaker"] = 1;
+    digitalWrite(alertLight, 1);
     serializeJson(doc, Serial1);
   }
 }
@@ -152,6 +166,10 @@ void ReadButton() {
 
   if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
     doc["speaker"] = !doc["speaker"];
+    if (!doc["speaker"]) {
+      doc["gasLeak"] = 0;
+      digitalWrite(alertLight, 0);
+    }
     digitalWrite(speaker, doc["speaker"]);
     serializeJson(doc, Serial1);
   }
