@@ -127,13 +127,14 @@ void SendDataToThingsboard()
     };
     tb.sendTelemetry(data, data_items);
 
-    const int attribute_items = 5;
+    const int attribute_items = 6;
     Attribute attributes[attribute_items] = {
       { "livingroomLight", doc["livingroom"] },
       { "frontDoor", doc["frontDoor"] },
       { "theftMode", doc["theftMode"] },
       { "theftDetect", doc["theftDetect"] },
-      { "speaker", doc["speaker"] }
+      { "speaker", doc["speaker"] },
+      { "gasLeak", doc["gasLeak"] },
     };
     tb.sendAttributes(attributes, attribute_items);
     // // Prepare a JSON payload string
