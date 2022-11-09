@@ -14,7 +14,7 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 WiFiClient wifiClient;
 WiFiClient espClient;
 
-ThingsBoard tb(espClient);
+ThingsBoardSized<128, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
 SoftwareSerial mega(D2, D3); //rx,tx
@@ -70,7 +70,8 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
 
   doc[method1] = (int)data["params"];
   serializeJson(doc, mega);
-  String payload01 = "{" + method1 + ":" + (String)doc[method1] + "}";
+  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
+
   char attributes01[100];
   payload01.toCharArray( attributes01, 100 );
   client.publish( "v1/devices/me/attributes", attributes01 );
