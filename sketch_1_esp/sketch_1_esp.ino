@@ -67,10 +67,9 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
   StaticJsonDocument<256> data;
   deserializeJson(data, payload, length);
   String method1 = data["method"].as<String>();
-
   doc[method1] = (int)data["params"];
   serializeJson(doc, mega);
-  String payload01 = "{" + method1 + ":" + (String)doc[method1] + "}";
+  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
   char attributes01[100];
   payload01.toCharArray( attributes01, 100 );
   client.publish( "v1/devices/me/attributes", attributes01 );
