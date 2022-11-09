@@ -14,14 +14,15 @@ StaticJsonDocument<256> doc;
 #define doorBtn 22                //Push Button
 #define li_light 24
 #define li_lightBtn 26
-
-bool s_li_light = false;
-bool s_door = false;
-
-float humidity = 0;
-float temperature = 0;
+#define pirBtn 30
+#define pirPin 32
+#define theftMode 34
+#define speaker 36
+#define speakerBtn 38
 
 float lastMillis = 0;
+
+bool theftSpeaker = 0;
 
 const int DHTPIN = 28;
 const int DHTTYPE = DHT11;
@@ -51,27 +52,39 @@ byte rowPins[numRows] = {23, 25, 27, 29}; //Rows 0 to 3 //if you modify your pin
 byte colPins[numCols] = {31, 33, 35, 37}; //Columns 0 to 3
 
 Keypad myKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, numRows, numCols);
+/* --------------------------------------------------------------------*/
 
 void setup()
 {
   doc["frontDoor"] = 0;
   doc["livingroomLight"] = 0;
+  doc["humidity"] = 0;
+  doc["temperature"] = 0;
+  doc["theftMode"] = 0;
+  doc["theftDetect"] = 0;
+  doc["speaker"] = 0;
+  
   Serial.begin(9600);
   Serial1.begin(9600);
+  
   dht.begin();
+  
   lcd.init();
   lcd.begin(16, 2);
   lcd.backlight();
-  //  lcd.setBacklightPin(BACKLIGHT_PIN, POSITIVE);
-  //  lcd.setBacklight(HIGH); //Lighting backlight
-  //  lcd.home ();
   lcd.print("Final project");      //What's written on the LCD you can change
+  
   sg90.attach(servoPin);
   sg90.write(0);
-  //  pinMode(Servo, OUTPUT);
+
   pinMode(doorBtn, INPUT_PULLUP);
-  pinMode(li_light, OUTPUT);
   pinMode(li_lightBtn, INPUT_PULLUP);
+  pinMode(pirBtn, INPUT_PULLUP);
+  pinMode(speakerBtn, INPUT_PULLUP);
+  pinMode(pirPin, INPUT);
+  pinMode(li_light, OUTPUT);
+  pinMode(theftMode, OUTPUT);
+  pinMode(speaker, OUTPUT);
 
   //  for(i=0 ; i<sizeof(code);i++){        //When you upload the code the first time keep it commented
   //    EEPROM.get(i, code[i]);             //Upload the code and change it to store it in the EEPROM
@@ -89,41 +102,58 @@ void loop()
 }
 
 void ReadSensor() {
-  if ((unsigned long) (millis() - lastMillis) > 5000) {
-    humidity = dht.readHumidity();
-    Serial.print("Humid: "); Serial.println(humidity);
-    temperature = dht.readTemperature();
-    doc["humidity"] = humidity;
-    doc["temperature"] = temperature;
+  //DHT11
+  if ((unsigned long) (millis() - lastMillis) > 5000) { 
+    doc["humidity"] = dht.readHumidity();
+    doc["temperature"] = dht.readTemperature();
     serializeJson(doc, Serial1);
     lastMillis = millis();
+  }
+
+  //PIR
+  if (digitalRead(pirPin) == HIGH) {
+    doc["theftDetect"] = 1;
+    digitalWrite(speaker, theftSpeaker);
+    serializeJson(doc, Serial1);
   }
 }
 
 void ReadButton() {
-  if (digitalRead(doorBtn) == LOW) {  //Opening by the push button
+  if (digitalRead(doorBtn) == LOW) {  //Opening/closing the door by the push button
     delay(30);
-    s_door = !s_door;
-    if (s_door) {
+    doc["frontDoor"] = !doc["frontDoor"];
+    if (doc["frontDoor"]) {
       sg90.write(90);
-      doc["frontDoor"] = 1;
-      serializeJson(doc, Serial1);
     }
     else {
       sg90.write(0);
-      doc["frontDoor"] = 0;
-      serializeJson(doc, Serial1);
     }
+    serializeJson(doc, Serial1);
     while (digitalRead(doorBtn) == LOW) {}
   }
 
   if (digitalRead(li_lightBtn) == LOW) {  //Turning on/off by the push button
     delay(30);
-    s_li_light = !s_li_light;
-    digitalWrite(li_light, s_li_light);
-    doc["livingroomLight"] = (int)s_li_light;
+    doc["livingroomLight"] = !doc["livingroomLight"];
+    digitalWrite(li_light, doc["livingroomLight"]);
     serializeJson(doc, Serial1);
     while (digitalRead(li_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
+    delay(30);
+    doc["theftMode"] = !doc["theftMode"];
+    doc["theftDetect"] = 0;
+    digitalWrite(theftMode, doc["theftMode"]);
+    theftSpeaker = 1;
+    serializeJson(doc, Serial1);
+    while (digitalRead(pirBtn) == LOW) {}
+  }
+
+  if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
+    doc["speaker"] = !doc["speaker"];
+    digitalWrite(speaker, doc["speaker"]);
+    serializeJson(doc, Serial1);
   }
 }
 
@@ -142,19 +172,33 @@ void ReadNumpad() {
     }
     delay(2000);
     lcd.clear();
-    lcd.print("Final project");             //Return to standby mode it's the message do display when waiting
+    lcd.print("Jarvis Home");             //Return to standby mode it's the message do display when waiting
   }
 
   if (keypressed == '#') {                //To change the code it calls the changecode function
     ChangeCode();
     lcd.clear();
-    lcd.print("Final project");                 //When done it returns to standby mode
+    lcd.print("Jarvis Home");                 //When done it returns to standby mode
   }
 
-  if (keypressed == 'C') {
-    s_door = false;
+  if (keypressed == 'C') { 
     sg90.write(0);
     doc["frontDoor"] = 0;
+    serializeJson(doc, Serial1);
+  }
+
+  if (keypressed == 'B') {
+    doc["theftMode"] = !doc["theftMode"];
+    doc["theftDetect"] = 0;
+    theftSpeaker = 0;
+    digitalWrite(theftMode, doc["theftMode"]);
+    lcd.clear();
+    lcd.print("Anti-theft: ");
+    lcd.setCursor(12, 0);
+    lcd.print(doc["theftMode"]?"On":"Off");
+    delay(2000);
+    lcd.clear();
+    lcd.print("Jarvis Home");
     serializeJson(doc, Serial1);
   }
 }
@@ -167,15 +211,14 @@ void GetDataFromESP() {
       Serial.println(err.f_str());
       return;
     }
-    bool s_li_light = doc["livingroomLight"];
-    digitalWrite(li_light, s_li_light);
-    bool s_door = doc["frontDoor"];
-    if (s_door) {
+    digitalWrite(li_light, doc["livingroomLight"]);
+    if (doc["frontDoor"]) {
       sg90.write(90);
     }
     else {
       sg90.write(0);
     }
+    digitalWrite(speaker, doc["speaker"]);
   }
 }
 
