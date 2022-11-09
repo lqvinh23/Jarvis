@@ -22,7 +22,6 @@ int status = WL_IDLE_STATUS;
 
 StaticJsonDocument<256> doc;
 
-char ch;
 float lastSend = 0;
 
 void setup()
@@ -45,18 +44,7 @@ void loop()
     DeserializationError err = deserializeJson(doc, mega);
     // Test if parsing succeeds.
     if (err == DeserializationError::Ok) {
-      bool frontDoor = doc["frontDoor"];
-      bool livingroomLight = doc["livingroomLight"];
-      float humidity = doc["humidity"];
-      float temperature = doc["temperature"];
-      // Print values.
-      Serial.print("frontDoor: ");
-      Serial.println(frontDoor);
-      Serial.print("livingroomLight: ");
-      Serial.println(livingroomLight);
-      Serial.print("humidity: ");
-      Serial.println(humidity);
-      SendDataToThingsboard(livingroomLight, frontDoor, humidity, temperature);
+      SendDataToThingsboard();
     }
     else
     {
@@ -79,79 +67,99 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
   StaticJsonDocument<256> data;
   deserializeJson(data, payload, length);
   String method1 = data["method"].as<String>();
-  if (method1 == "livingroomLight")
-  {
-    if (data["params"] == true)
-    {
-      doc["livingroomLight"] = 1;
-      serializeJson(doc, mega);
-      String payload01 = "{\"livingroomLight\":\"1\"}";
-      char attributes01[100];
-      payload01.toCharArray( attributes01, 100 );
-      client.publish( "v1/devices/me/attributes", attributes01 );
-    }
-    else if (data["params"] == false)
-    {
-      doc["livingroomLight"] = 0;
-      serializeJson(doc, mega);
-      String payload01 = "{\"livingroomLight\":\"0\"}";
-      char attributes01[100];
-      payload01.toCharArray( attributes01, 100 );
-      client.publish( "v1/devices/me/attributes", attributes01 );
-    }
-  }
 
-  if (method1 == "frontDoor")
-  {
-    if (data["params"] == true)
-    {
-      doc["frontDoor"] = 1;
-      serializeJson(doc, mega);
-      String payload02 = "{\"frontDoor\":\"1\"}";
-      char attributes02[100];
-      payload02.toCharArray( attributes02, 100 );
-      client.publish( "v1/devices/me/attributes", attributes02 );
-    }
-    else if (data["params"] == false)
-    {
-      doc["frontDoor"] = 0;
-      serializeJson(doc, mega);
-      String payload02 = "{\"frontDoor\":\"0\"}";
-      char attributes02[100];
-      payload02.toCharArray( attributes02, 100 );
-      client.publish( "v1/devices/me/attributes", attributes02 );
-    }
-  }
+  doc[method1] = (int)data["params"];
+  serializeJson(doc, mega);
+  String payload01 = "{" + method1 + ":" + (String)doc[method1] + "}";
+  char attributes01[100];
+  payload01.toCharArray( attributes01, 100 );
+  client.publish( "v1/devices/me/attributes", attributes01 );
+
+  // if (method1 == "livingroomLight")
+  // {
+  //     doc["livingroomLight"] = (int)data["params"];
+  //     serializeJson(doc, mega);
+  //     String payload01 = "{\"livingroomLight\":" + (String)doc["livingroomLight"] + "}";
+  //     char attributes01[100];
+  //     payload01.toCharArray( attributes01, 100 );
+  //     client.publish( "v1/devices/me/attributes", attributes01 );
+  // }
+
+  // if (method1 == "frontDoor")
+  // {
+  //     doc["frontDoor"] = (int)data["params"];
+  //     serializeJson(doc, mega);
+  //     String payload02 = "{\"frontDoor\":" + (String)doc["frontDoor"] + "}";
+  //     char attributes02[100];
+  //     payload02.toCharArray( attributes02, 100 );
+  //     client.publish( "v1/devices/me/attributes", attributes02 );
+  // }
+
+  // if (method1 == "theftMode")
+  // {
+  //     doc["theftMode"] = (int)data["params"];
+  //     serializeJson(doc, mega);
+  //     String payload03 = "{\"theftMode\":" + (String)doc["theftMode"] + "}";
+  //     char attributes03[100];
+  //     payload03.toCharArray( attributes03, 100 );
+  //     client.publish( "v1/devices/me/attributes", attributes03 );
+  // }
+
+  // if (method1 == "speaker")
+  // {
+  //     doc["speaker"] = (int)data["params"];
+  //     serializeJson(doc, mega);
+  //     String payload04 = "{\"speaker\":" + (String)doc["speaker"] + "}";
+  //     char attributes04[100];
+  //     payload04.toCharArray( attributes04, 100 );
+  //     client.publish( "v1/devices/me/attributes", attributes04 );
+  // }
 }
 
-void SendDataToThingsboard(int livingroomLight, int frontDoor, float humidity, float temperature)
+void SendDataToThingsboard()
 {
   if ( millis() - lastSend > 1000 )
   {
-    // Prepare a JSON payload string
-    String payload = "{";
-    payload += "\"livingroomLight\":\"" + (String)livingroomLight + "\"}";
-    char attributes[100];
-    payload.toCharArray( attributes, 100 );
-    client.publish( "v1/devices/me/attributes", attributes );
+    const int data_items = 2;
+    Telemetry data[data_items] = {
+      { "temperature", doc["temperature"] },
+      { "humidity",    doc["humidity"] },
+    };
+    tb.sendTelemetry(data, data_items);
 
-    String payload1 = "{";
-    payload1 += "\"frontDoor\":\"" + (String)frontDoor + "\"}";
-    char attributes1[100];
-    payload1.toCharArray( attributes1, 100 );
-    client.publish( "v1/devices/me/attributes", attributes1 );
+    const int attribute_items = 5;
+    Attribute attributes[attribute_items] = {
+      { "livingroomLight", doc["livingroom"] },
+      { "frontDoor", doc["frontDoor"] },
+      { "theftMode", doc["theftMode"] },
+      { "theftDetect", doc["theftDetect"] },
+      { "speaker", doc["speaker"] }
+    };
+    tb.sendAttributes(attributes, attribute_items);
+    // // Prepare a JSON payload string
+    // String payload = "{";
+    // payload += "\"livingroomLight\":\"" + (String)livingroomLight + "\"}";
+    // char attributes[100];
+    // payload.toCharArray( attributes, 100 );
+    // client.publish( "v1/devices/me/attributes", attributes );
 
-    String payload2 = "{";
-    payload2 += "\"humidity\":\"" + (String)humidity + "\"}";
-    char attributes2[100];
-    payload2.toCharArray( attributes2, 100 );
-    client.publish( "v1/devices/me/telemetry", attributes2 );
+    // String payload1 = "{";
+    // payload1 += "\"frontDoor\":\"" + (String)frontDoor + "\"}";
+    // char attributes1[100];
+    // payload1.toCharArray( attributes1, 100 );
+    // client.publish( "v1/devices/me/attributes", attributes1 );
 
-    String payload3 = "{";
-    payload3 += "\"temperature\":\"" + (String)temperature + "\"}";
-    char attributes3[100];
-    payload3.toCharArray( attributes3, 100 );
-    client.publish( "v1/devices/me/telemetry", attributes3 );
+    // String payload2 = "{";
+    // payload2 += "\"humidity\":\"" + (String)humidity + "\"}";
+    // char attributes2[100];
+    // payload2.toCharArray( attributes2, 100 );
+    // client.publish( "v1/devices/me/telemetry", attributes2 );
+
+    // String payload3 = "{";
+    // payload3 += "\"temperature\":\"" + (String)temperature + "\"}";
+    // char attributes3[100];
+    // payload3.toCharArray( attributes3, 100 );
+    // client.publish( "v1/devices/me/telemetry", attributes3 );
 
     Serial.println("Sent data to Thingsboard ");
   }

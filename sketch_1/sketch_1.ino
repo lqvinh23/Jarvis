@@ -10,8 +10,8 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 Servo sg90;
 StaticJsonDocument<256> doc;
 
-#define servoPin 13                //Controls the Servo
-#define doorBtn 22                //Push Button
+#define servoPin 13              
+#define doorBtn 22                
 #define li_light 24
 #define li_lightBtn 26
 #define pirBtn 30
