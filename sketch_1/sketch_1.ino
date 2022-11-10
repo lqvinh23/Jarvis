@@ -226,7 +226,7 @@ void GetDataFromESP() {
     DeserializationError err = deserializeJson(doc, Serial1);
     if (err) {
       Serial.print(F("deserializeJson() failed: "));
-      Serial.println(err.f_str());
+      Serial.println(err.c_str());
       while (Serial1.available() > 0)
         Serial1.read();
       return;
