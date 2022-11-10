@@ -60,6 +60,7 @@ void loop()
     transmitter["theftDetect"] = receiver["theftDetect"];
     transmitter["speaker"] = receiver["speaker"];
     transmitter["gasLeak"] = receiver["gasLeak"];
+    transmitter["fireAlert"] = receiver["fireAlert"];
     SendDataToThingsboard();
   }
 
@@ -102,6 +103,7 @@ void SendDataToThingsboard()
       { "theftDetect", transmitter["theftDetect"].as<int>() },
       { "speaker", transmitter["speaker"].as<int>() },
       { "gasLeak", transmitter["gasLeak"].as<int>() },
+      { "fireAlert", transmitter["fireAlert"].as<int>() }
     };
     tb.sendAttributes(attributes, attribute_items);
 

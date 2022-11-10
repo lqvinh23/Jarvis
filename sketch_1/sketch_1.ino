@@ -22,6 +22,7 @@ StaticJsonDocument<256> transmitter;
 #define speakerBtn 38
 #define gasSensor 39
 #define alertLight 40
+#define flameSensor 41
 
 float lastMillis = 0;
 
@@ -67,6 +68,7 @@ void setup()
   transmitter["theftDetect"] = 0;
   transmitter["speaker"] = 0;
   transmitter["gasLeak"] = 0;
+  transmitter["fireAlert"] = 0;
   
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -83,9 +85,10 @@ void setup()
 
   pinMode(doorBtn, INPUT_PULLUP);
   pinMode(li_lightBtn, INPUT_PULLUP);
-  pinMode(pirBtn, INPUT_PULLUP);
   pinMode(speakerBtn, INPUT_PULLUP);
-  pinMode(gasSensor, INPUT_PULLUP);
+  pinMode(pirBtn, INPUT_PULLUP);
+  pinMode(gasSensor, INPUT);
+  pinMode(flameSensor, INPUT);
   pinMode(pirPin, INPUT);
   pinMode(li_light, OUTPUT);
   pinMode(theftMode, OUTPUT);
@@ -117,7 +120,7 @@ void ReadSensor() {
   }
 
   //PIR
-  if (digitalRead(pirPin) == HIGH) {
+  if ((digitalRead(pirPin) == HIGH) && (transmitter["theftMode"] == 1)) {
     transmitter["theftDetect"] = 1;
     digitalWrite(speaker, theftSpeaker);
     serializeJson(transmitter, Serial1);
@@ -126,8 +129,17 @@ void ReadSensor() {
   // Gas sensor
   if (digitalRead(gasSensor) == HIGH) {
     transmitter["gasLeak"] = 1;
-    digitalWrite(speaker, 1);
     transmitter["speaker"] = 1;
+    digitalWrite(speaker, 1);
+    digitalWrite(alertLight, 1);
+    serializeJson(transmitter, Serial1);
+  }
+
+  // Flame sensor
+  if (digitalRead(flameSensor) == HIGH) {
+    transmitter["fireAlert"] = 1;
+    transmitter["speaker"] = 1;
+    digitalWrite(speaker, 1);
     digitalWrite(alertLight, 1);
     serializeJson(transmitter, Serial1);
   }
@@ -169,8 +181,9 @@ void ReadButton() {
     transmitter["speaker"] = !transmitter["speaker"];
     if (!transmitter["speaker"]) {
       transmitter["gasLeak"] = 0;
-      digitalWrite(alertLight, 0);
+      transmitter["fireAlert"] = 0;
     }
+    digitalWrite(alertLight, transmitter["speaker"]);
     digitalWrite(speaker, transmitter["speaker"]);
     serializeJson(transmitter, Serial1);
   }
