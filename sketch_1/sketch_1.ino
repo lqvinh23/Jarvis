@@ -267,14 +267,16 @@ void ReadNumpad() {
 void GetDataFromESP() {
   if (Serial1.available()) {
     DeserializationError err = deserializeJson(receiver, Serial1);
-    transmitter["frontDoor"] = receiver["frontDoor"];
-    transmitter["livingroomLight"] = receiver["livingroomLight"];
-    transmitter["humidity"] = receiver["humidity"];
-    transmitter["temperature"] = receiver["temperature"];
-    transmitter["theftMode"] = receiver["theftMode"];
-    transmitter["theftDetect"] = receiver["theftDetect"];
-    transmitter["speaker"] = receiver["speaker"];
-    transmitter["gasLeak"] = receiver["gasLeak"];
+    transmitter["frontDoor"] = receiver["frontDoor"].as<int>();
+    transmitter["livingroomLight"] = receiver["livingroomLight"].as<int>();
+    transmitter["humidity"] = receiver["humidity"].as<float>();
+    transmitter["temperature"] = receiver["temperature"].as<float>();
+    transmitter["theftMode"] = receiver["theftMode"].as<int>();
+    transmitter["theftDetect"] = receiver["theftDetect"].as<int>();
+    transmitter["speaker"] = receiver["speaker"].as<int>();
+    transmitter["gasLeak"] = receiver["gasLeak"].as<int>();
+    transmitter["fire"] = receiver["fire"].as<int>();
+    transmitter["hanger"] = receiver["hanger"].as<int>();
     if (err) {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(err.f_str());
