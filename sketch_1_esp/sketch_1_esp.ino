@@ -14,14 +14,14 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 WiFiClient wifiClient;
 WiFiClient espClient;
 
-ThingsBoardSized<128, 32> tb(espClient);
+ThingsBoardSized<256, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
 SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
-StaticJsonDocument<256> transmitter;
-StaticJsonDocument<256> receiver;
+StaticJsonDocument<1024> transmitter;
+StaticJsonDocument<1024> receiver;
 
 float lastSend = 0;
 
@@ -52,16 +52,16 @@ void loop()
         mega.read();
       return;
     }
-    transmitter["frontDoor"] = receiver["frontDoor"];
-    transmitter["livingroomLight"] = receiver["livingroomLight"];
-    transmitter["humidity"] = receiver["humidity"];
-    transmitter["temperature"] = receiver["temperature"];
-    transmitter["theftMode"] = receiver["theftMode"];
-    transmitter["theftDetect"] = receiver["theftDetect"];
-    transmitter["speaker"] = receiver["speaker"];
-    transmitter["gasLeak"] = receiver["gasLeak"];
-    transmitter["fire"] = receiver["fire"];
-    transmitter["hanger"] = receiver["hanger"];
+    transmitter["frontDoor"] = receiver["frontDoor"].as<int>();
+    transmitter["livingroomLight"] = receiver["livingroomLight"].as<int>();
+    transmitter["humidity"] = receiver["humidity"].as<float>();
+    transmitter["temperature"] = receiver["temperature"].as<float>();
+    transmitter["theftMode"] = receiver["theftMode"].as<int>();
+    transmitter["theftDetect"] = receiver["theftDetect"].as<int>();
+    transmitter["speaker"] = receiver["speaker"].as<int>();
+    transmitter["gasLeak"] = receiver["gasLeak"].as<int>();
+    transmitter["fire"] = receiver["fire"].as<int>();
+    transmitter["hanger"] = receiver["hanger"].as<int>();
     SendDataToThingsboard();
   }
 
@@ -91,21 +91,21 @@ void SendDataToThingsboard()
   {
     const int telemetry_items = 2;
     Telemetry telemetry[telemetry_items] = {
-      { "temperature", transmitter["temperature"].as<float>() },
-      { "humidity",    transmitter["humidity"].as<float>() },
+      { "temperature", transmitter["temperature"] },
+      { "humidity",    transmitter["humidity"] },
     };
     tb.sendTelemetry(telemetry, telemetry_items);
 
-    const int attribute_items = 6;
+    const int attribute_items = 8;
     Attribute attributes[attribute_items] = {
-      { "livingroomLight", transmitter["livingroom"].as<int>() },
-      { "frontDoor", transmitter["frontDoor"].as<int>() },
-      { "theftMode", transmitter["theftMode"].as<int>() },
-      { "theftDetect", transmitter["theftDetect"].as<int>() },
-      { "speaker", transmitter["speaker"].as<int>() },
-      { "gasLeak", transmitter["gasLeak"].as<int>() },
-      { "fire", transmitter["fire"].as<int>() },
-      { "hanger", transmitter["hanger"].as<int>() },
+      { "livingroomLight", transmitter["livingroom"] },
+      { "frontDoor", transmitter["frontDoor"] },
+      { "theftMode", transmitter["theftMode"] },
+      { "theftDetect", transmitter["theftDetect"] },
+      { "speaker", transmitter["speaker"] },
+      { "gasLeak", transmitter["gasLeak"] },
+      { "fire", transmitter["fire"] },
+      { "hanger", transmitter["hanger"] },
     };
     tb.sendAttributes(attributes, attribute_items);
 

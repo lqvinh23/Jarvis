@@ -9,8 +9,8 @@
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 Servo sg90Door;
 Servo sg90Hanger;
-StaticJsonDocument<256> receiver;
-StaticJsonDocument<256> transmitter;
+StaticJsonDocument<1024> receiver;
+StaticJsonDocument<1024> transmitter;
 
 #define servoDoor 13              
 #define doorBtn 22                
