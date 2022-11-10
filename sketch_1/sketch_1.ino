@@ -108,7 +108,7 @@ void loop()
 
 void ReadSensor() {
   //DHT11
-  if ((unsigned long) (millis() - lastMillis) > 5000) { 
+  if ((unsigned long) (millis() - lastMillis) > 60000) { 
     doc["humidity"] = dht.readHumidity();
     doc["temperature"] = dht.readTemperature();
     serializeJson(doc, Serial1);
@@ -227,6 +227,8 @@ void GetDataFromESP() {
     if (err) {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(err.f_str());
+      while (Serial1.available() > 0)
+        Serial1.read();
       return;
     }
     digitalWrite(li_light, doc["livingroomLight"]);
