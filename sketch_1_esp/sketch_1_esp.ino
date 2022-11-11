@@ -48,8 +48,7 @@ void loop()
       Serial.print("deserializeJson() failed: ");
       Serial.println(err.c_str());
       // Flush all bytes in the "link" serial port buffer
-      while (mega.available() > 0)
-        mega.read();
+      while (mega.available() > 0) mega.read();
       return;
     }
     transmitter["frontDoor"] = receiver["frontDoor"].as<int>();
@@ -62,6 +61,10 @@ void loop()
     transmitter["gasLeak"] = receiver["gasLeak"].as<int>();
     transmitter["fire"] = receiver["fire"].as<int>();
     transmitter["hanger"] = receiver["hanger"].as<int>();
+    //    Serial.println(transmitter["humidity"].as<float>());
+    //    Serial.print("Livingroom light: ");
+    //    Serial.println(transmitter["livingroomLight"].as<int>());
+    serializeJsonPretty(receiver, Serial);
     SendDataToThingsboard();
   }
 
