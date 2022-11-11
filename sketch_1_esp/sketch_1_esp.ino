@@ -89,6 +89,7 @@ void SendDataToThingsboard()
     const int attribute_items = 12;
     Attribute attributes[attribute_items] = {
       { "livingroomLight", doc["livingroomLight"].as<int>() },
+      { "livingroomFan", doc["livingroomFan"].as<int>() },
       { "bedroomLight", doc["bedroomLight"].as<int>() },
       { "bathroomLight", doc["bathroomLight"].as<int>() },
       { "kitchenLight", doc["kitchenLight"].as<int>() },

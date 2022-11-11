@@ -35,7 +35,9 @@ StaticJsonDocument<1024> doc;
 #define ba_light 49
 #define ba_lightBtn 50
 #define ki_fan 51
-#define ki_fanBtn 52    
+#define ki_fanBtn 52
+#define li_fan 53
+#define li_fanBtn 54
 
 float lastSend = 0;
 
@@ -75,6 +77,7 @@ void setup()
 {
   doc["frontDoor"] = 0;
   doc["livingroomLight"] = 0;
+  doc["livingroomFan"] = 0;
   doc["kitchenLight"] = 0;
   doc["kitchenFan"] = 0;
   doc["bedroomLight"] = 0;
@@ -105,6 +108,7 @@ void setup()
 
   pinMode(doorBtn, INPUT_PULLUP);
   pinMode(li_lightBtn, INPUT_PULLUP);
+  pinMode(li_fanBtn, INPUT_PULLUP);
   pinMode(ki_lightBtn, INPUT_PULLUP);
   pinMode(ki_fanBtn, INPUT_PULLUP);
   pinMode(be_lightBtn, INPUT_PULLUP);
@@ -117,6 +121,7 @@ void setup()
   pinMode(pirSensor, INPUT);
   pinMode(rainSensor, INPUT);
   pinMode(li_light, OUTPUT);
+  pinMode(li_fan, OUTPUT);
   pinMode(ki_light, OUTPUT);
   pinMode(ki_fan, OUTPUT);
   pinMode(be_light, OUTPUT);
@@ -219,6 +224,14 @@ void ReadButton() {
     digitalWrite(li_light, doc["livingroomLight"]);
     serializeJson(doc, Serial1);
     while (digitalRead(li_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(li_fanBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["livingroomFan"] = !doc["livingroomFan"];
+    digitalWrite(li_fan, doc["livingroomFan"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(li_fanBtn) == LOW) {}
   }
 
   if (digitalRead(ki_lightBtn) == LOW) {  //Turning on/off by the push button
