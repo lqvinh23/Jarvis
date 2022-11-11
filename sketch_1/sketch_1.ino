@@ -275,6 +275,8 @@ void GetDataFromESP() {
         Serial1.read();
       return;
     }
+    serializeJsonPretty(doc, Serial);
+
     digitalWrite(li_light, doc["livingroomLight"]);
     if (doc["frontDoor"]) {
       sg90Door.write(90);
