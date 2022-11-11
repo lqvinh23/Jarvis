@@ -86,7 +86,7 @@ void SendDataToThingsboard()
     };
     tb.sendTelemetry(telemetry, telemetry_items);
 
-    const int attribute_items = 12;
+    const int attribute_items = 13;
     Attribute attributes[attribute_items] = {
       { "livingroomLight", doc["livingroomLight"].as<int>() },
       { "livingroomFan", doc["livingroomFan"].as<int>() },
