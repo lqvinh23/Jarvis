@@ -7,10 +7,11 @@
 #include "DHT.h"
 
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
+
 Servo sg90Door;
 Servo sg90Hanger;
-StaticJsonDocument<256> receiver;
-StaticJsonDocument<256> transmitter;
+
+StaticJsonDocument<1024> doc;
 
 #define servoDoor 13              
 #define doorBtn 22                
@@ -28,7 +29,7 @@ StaticJsonDocument<256> transmitter;
 #define servoHanger 43   
 #define hangerBtn 44           
 
-float lastMillis = 0;
+float lastSend = 0;
 
 bool theftSpeaker = 0;
 
@@ -64,16 +65,16 @@ Keypad myKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, numRows, numCols)
 
 void setup()
 {
-  transmitter["frontDoor"] = 0;
-  transmitter["livingroomLight"] = 0;
-  transmitter["humidity"] = 0;
-  transmitter["temperature"] = 0;
-  transmitter["theftMode"] = 0;
-  transmitter["theftDetect"] = 0;
-  transmitter["speaker"] = 0;
-  transmitter["gasLeak"] = 0;
-  transmitter["fire"] = 0;
-  transmitter["hanger"] = 0;
+  doc["frontDoor"] = 0;
+  doc["livingroomLight"] = 0;
+  doc["humidity"] = 0;
+  doc["temperature"] = 0;
+  doc["theftMode"] = 0;
+  doc["theftDetect"] = 0;
+  doc["speaker"] = 0;
+  doc["gasLeak"] = 0;
+  doc["fire"] = 0;
+  doc["hanger"] = 0;
   
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -121,100 +122,100 @@ void loop()
 
 void ReadSensor() {
   // DHT11
-  if ((unsigned long) (millis() - lastMillis) > 60000) { 
-    transmitter["humidity"] = dht.readHumidity();
-    transmitter["temperature"] = dht.readTemperature();
-    serializeJson(transmitter, Serial1);
-    lastMillis = millis();
+  if ((unsigned long) (millis() - lastSend) > 60000) { 
+    doc["humidity"] = dht.readHumidity();
+    doc["temperature"] = dht.readTemperature();
+    serializeJson(doc, Serial1);
+    lastSend = millis();
   }
 
   // PIR
-  if ((digitalRead(pirSensor) == HIGH) && (transmitter["theftMode"] == 1)) {
-    transmitter["theftDetect"] = 1;
+  if ((digitalRead(pirSensor) == HIGH) && (doc["theftMode"] == 1)) {
+    doc["theftDetect"] = 1;
     digitalWrite(speaker, theftSpeaker);
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
   }
 
   // Gas sensor
   if (digitalRead(gasSensor) == HIGH) {
-    transmitter["gasLeak"] = 1;
-    transmitter["speaker"] = 1;
+    doc["gasLeak"] = 1;
+    doc["speaker"] = 1;
     digitalWrite(speaker, 1);
     digitalWrite(alertLight, 1);
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
   }
 
   // Flame sensor
   if (digitalRead(flameSensor) == HIGH) {
-    transmitter["fire"] = 1;
-    transmitter["speaker"] = 1;
+    doc["fire"] = 1;
+    doc["speaker"] = 1;
     digitalWrite(speaker, 1);
     digitalWrite(alertLight, 1);
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
   }
 
     // Rain sensor
   if (digitalRead(rainSensor) == LOW) {
-    transmitter["hanger"] = 0;
+    doc["hanger"] = 0;
     sg90Hanger.write(0);
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
   }
 }
 
 void ReadButton() {
   if (digitalRead(doorBtn) == LOW) {  //Opening/closing the door by the push button
     delay(30);
-    transmitter["frontDoor"] = !transmitter["frontDoor"];
-    if (transmitter["frontDoor"]) {
+    doc["frontDoor"] = !doc["frontDoor"];
+    if (doc["frontDoor"]) {
       sg90Door.write(90);
     }
     else {
       sg90Door.write(0);
     }
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
     while (digitalRead(doorBtn) == LOW) {}
   }
 
   if ((digitalRead(hangerBtn) == LOW) && (digitalRead(rainSensor) == HIGH)) {  //Opening/closing the hanger by the push button
     delay(30);
-    transmitter["hanger"] = !transmitter["hanger"];
-    if (transmitter["hanger"]) {
+    doc["hanger"] = !doc["hanger"];
+    if (doc["hanger"]) {
       sg90Hanger.write(90);
     }
     else {
       sg90Hanger.write(0);
     }
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
     while (digitalRead(hangerBtn) == LOW) {}
   }
 
   if (digitalRead(li_lightBtn) == LOW) {  //Turning on/off by the push button
     delay(30);
-    transmitter["livingroomLight"] = !transmitter["livingroomLight"];
-    digitalWrite(li_light, transmitter["livingroomLight"]);
-    serializeJson(transmitter, Serial1);
+    doc["livingroomLight"] = !doc["livingroomLight"];
+    digitalWrite(li_light, doc["livingroomLight"]);
+    serializeJson(doc, Serial1);
     while (digitalRead(li_lightBtn) == LOW) {}
   }
 
   if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
     delay(30);
-    transmitter["theftMode"] = !transmitter["theftMode"];
-    transmitter["theftDetect"] = 0;
-    digitalWrite(theftMode, transmitter["theftMode"]);
+    doc["theftMode"] = !doc["theftMode"];
+    doc["theftDetect"] = 0;
+    digitalWrite(theftMode, doc["theftMode"]);
     theftSpeaker = 1;
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
     while (digitalRead(pirBtn) == LOW) {}
   }
 
   if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
-    transmitter["speaker"] = !transmitter["speaker"];
-    if (!transmitter["speaker"]) {
-      transmitter["gasLeak"] = 0;
-      transmitter["fire"] = 0;
+    doc["speaker"] = !doc["speaker"];
+    if (!doc["speaker"]) {
+      doc["gasLeak"] = 0;
+      doc["fire"] = 0;
     }
-    digitalWrite(alertLight, transmitter["speaker"]);
-    digitalWrite(speaker, transmitter["speaker"]);
-    serializeJson(transmitter, Serial1);
+    digitalWrite(alertLight, doc["speaker"]);
+    digitalWrite(speaker, doc["speaker"]);
+    serializeJson(doc, Serial1);
   }
 }
 
@@ -244,37 +245,29 @@ void ReadNumpad() {
 
   if (keypressed == 'C') { 
     sg90Door.write(0);
-    transmitter["frontDoor"] = 0;
-    serializeJson(transmitter, Serial1);
+    doc["frontDoor"] = 0;
+    serializeJson(doc, Serial1);
   }
 
   if (keypressed == 'B') {
-    transmitter["theftMode"] = !transmitter["theftMode"];
-    transmitter["theftDetect"] = 0;
+    doc["theftMode"] = !doc["theftMode"];
+    doc["theftDetect"] = 0;
     theftSpeaker = 0;
-    digitalWrite(theftMode, transmitter["theftMode"]);
+    digitalWrite(theftMode, doc["theftMode"]);
     lcd.clear();
     lcd.print("Anti-theft: ");
     lcd.setCursor(12, 0);
-    lcd.print(transmitter["theftMode"]?"On":"Off");
+    lcd.print(doc["theftMode"]?"On":"Off");
     delay(2000);
     lcd.clear();
     lcd.print("Jarvis Home");
-    serializeJson(transmitter, Serial1);
+    serializeJson(doc, Serial1);
   }
 }
 
 void GetDataFromESP() {
   if (Serial1.available()) {
-    DeserializationError err = deserializeJson(receiver, Serial1);
-    transmitter["frontDoor"] = receiver["frontDoor"];
-    transmitter["livingroomLight"] = receiver["livingroomLight"];
-    transmitter["humidity"] = receiver["humidity"];
-    transmitter["temperature"] = receiver["temperature"];
-    transmitter["theftMode"] = receiver["theftMode"];
-    transmitter["theftDetect"] = receiver["theftDetect"];
-    transmitter["speaker"] = receiver["speaker"];
-    transmitter["gasLeak"] = receiver["gasLeak"];
+    DeserializationError err = deserializeJson(doc, Serial1);
     if (err) {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(err.c_str());
@@ -282,14 +275,14 @@ void GetDataFromESP() {
         Serial1.read();
       return;
     }
-    digitalWrite(li_light, transmitter["livingroomLight"]);
-    if (transmitter["frontDoor"]) {
+    digitalWrite(li_light, doc["livingroomLight"]);
+    if (doc["frontDoor"]) {
       sg90Door.write(90);
     }
     else {
       sg90Door.write(0);
     }
-    digitalWrite(speaker, transmitter["speaker"]);
+    digitalWrite(speaker, doc["speaker"]);
   }
 }
 

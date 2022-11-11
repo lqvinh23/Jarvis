@@ -14,14 +14,13 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 WiFiClient wifiClient;
 WiFiClient espClient;
 
-ThingsBoardSized<128, 32> tb(espClient);
+ThingsBoardSized<256, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
 SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
-StaticJsonDocument<256> transmitter;
-StaticJsonDocument<256> receiver;
+StaticJsonDocument<1024> doc;
 
 float lastSend = 0;
 
@@ -42,7 +41,7 @@ void loop()
   }
   if (mega.available() > 0)
   {
-    DeserializationError err = deserializeJson(receiver, mega);
+    DeserializationError err = deserializeJson(doc, mega);
     if (err) {
       // Print error to the "debug" serial port
       Serial.print("deserializeJson() failed: ");
@@ -52,16 +51,7 @@ void loop()
         mega.read();
       return;
     }
-    transmitter["frontDoor"] = receiver["frontDoor"];
-    transmitter["livingroomLight"] = receiver["livingroomLight"];
-    transmitter["humidity"] = receiver["humidity"];
-    transmitter["temperature"] = receiver["temperature"];
-    transmitter["theftMode"] = receiver["theftMode"];
-    transmitter["theftDetect"] = receiver["theftDetect"];
-    transmitter["speaker"] = receiver["speaker"];
-    transmitter["gasLeak"] = receiver["gasLeak"];
-    transmitter["fire"] = receiver["fire"];
-    transmitter["hanger"] = receiver["hanger"];
+    serializeJsonPretty(doc, Serial);
     SendDataToThingsboard();
   }
 
@@ -76,10 +66,10 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
   deserializeJson(data, payload, length);
 
   String method1 = data["method"].as<String>();
-  transmitter[method1] = (int)data["params"];
-  serializeJson(transmitter, mega);
+  doc[method1] = (int)data["params"];
+  serializeJson(doc, mega);
 
-  String payload01 = "{" + method1 + ":" + transmitter[method1].as<String>() + "}";
+  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
   char attributes01[100];
   payload01.toCharArray( attributes01, 100 );
   client.publish( "v1/devices/me/attributes", attributes01 );
@@ -91,25 +81,25 @@ void SendDataToThingsboard()
   {
     const int telemetry_items = 2;
     Telemetry telemetry[telemetry_items] = {
-      { "temperature", transmitter["temperature"].as<float>() },
-      { "humidity",    transmitter["humidity"].as<float>() },
+      { "temperature", doc["temperature"].as<float>() },
+      { "humidity",    doc["humidity"].as<float>() },
     };
     tb.sendTelemetry(telemetry, telemetry_items);
 
-    const int attribute_items = 6;
+    const int attribute_items = 8;
     Attribute attributes[attribute_items] = {
-      { "livingroomLight", transmitter["livingroom"].as<int>() },
-      { "frontDoor", transmitter["frontDoor"].as<int>() },
-      { "theftMode", transmitter["theftMode"].as<int>() },
-      { "theftDetect", transmitter["theftDetect"].as<int>() },
-      { "speaker", transmitter["speaker"].as<int>() },
-      { "gasLeak", transmitter["gasLeak"].as<int>() },
-      { "fire", transmitter["fire"].as<int>() },
-      { "hanger", transmitter["hanger"].as<int>() },
+      { "livingroomLight", doc["livingroom"].as<int>() },
+      { "frontDoor", doc["frontDoor"].as<int>() },
+      { "theftMode", doc["theftMode"].as<int>() },
+      { "theftDetect", doc["theftDetect"].as<int>() },
+      { "speaker", doc["speaker"].as<int>() },
+      { "gasLeak", doc["gasLeak"].as<int>() },
+      { "fire", doc["fire"].as<int>() },
+      { "hanger", doc["hanger"].as<int>() },
     };
     tb.sendAttributes(attributes, attribute_items);
 
-    Serial.println("Sent data to Thingsboard ");
+    Serial.println("\nSent data to Thingsboard ");
   }
   lastSend = millis();
 }
