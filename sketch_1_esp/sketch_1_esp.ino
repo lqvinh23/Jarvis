@@ -20,8 +20,7 @@ PubSubClient client(wifiClient);
 SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
-StaticJsonDocument<1024> transmitter;
-StaticJsonDocument<1024> receiver;
+StaticJsonDocument<1024> doc;
 
 float lastSend = 0;
 
@@ -42,7 +41,7 @@ void loop()
   }
   if (mega.available() > 0)
   {
-    DeserializationError err = deserializeJson(receiver, mega);
+    DeserializationError err = deserializeJson(doc, mega);
     if (err) {
       // Print error to the "debug" serial port
       Serial.print("deserializeJson() failed: ");
@@ -51,20 +50,7 @@ void loop()
       while (mega.available() > 0) mega.read();
       return;
     }
-    transmitter["frontDoor"] = receiver["frontDoor"].as<int>();
-    transmitter["livingroomLight"] = receiver["livingroomLight"].as<int>();
-    transmitter["humidity"] = receiver["humidity"].as<float>();
-    transmitter["temperature"] = receiver["temperature"].as<float>();
-    transmitter["theftMode"] = receiver["theftMode"].as<int>();
-    transmitter["theftDetect"] = receiver["theftDetect"].as<int>();
-    transmitter["speaker"] = receiver["speaker"].as<int>();
-    transmitter["gasLeak"] = receiver["gasLeak"].as<int>();
-    transmitter["fire"] = receiver["fire"].as<int>();
-    transmitter["hanger"] = receiver["hanger"].as<int>();
-    //    Serial.println(transmitter["humidity"].as<float>());
-    //    Serial.print("Livingroom light: ");
-    //    Serial.println(transmitter["livingroomLight"].as<int>());
-    serializeJsonPretty(receiver, Serial);
+    serializeJsonPretty(doc, Serial);
     SendDataToThingsboard();
   }
 
@@ -79,10 +65,10 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
   deserializeJson(data, payload, length);
 
   String method1 = data["method"].as<String>();
-  transmitter[method1] = (int)data["params"];
-  serializeJson(transmitter, mega);
+  doc[method1] = (int)data["params"];
+  serializeJson(doc, mega);
 
-  String payload01 = "{" + method1 + ":" + transmitter[method1].as<String>() + "}";
+  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
   char attributes01[100];
   payload01.toCharArray( attributes01, 100 );
   client.publish( "v1/devices/me/attributes", attributes01 );
@@ -94,25 +80,30 @@ void SendDataToThingsboard()
   {
     const int telemetry_items = 2;
     Telemetry telemetry[telemetry_items] = {
-      { "temperature", transmitter["temperature"] },
-      { "humidity",    transmitter["humidity"] },
+      { "temperature", doc["temperature"].as<float>() },
+      { "humidity",    doc["humidity"].as<float>() },
     };
     tb.sendTelemetry(telemetry, telemetry_items);
 
-    const int attribute_items = 8;
+    const int attribute_items = 13;
     Attribute attributes[attribute_items] = {
-      { "livingroomLight", transmitter["livingroom"] },
-      { "frontDoor", transmitter["frontDoor"] },
-      { "theftMode", transmitter["theftMode"] },
-      { "theftDetect", transmitter["theftDetect"] },
-      { "speaker", transmitter["speaker"] },
-      { "gasLeak", transmitter["gasLeak"] },
-      { "fire", transmitter["fire"] },
-      { "hanger", transmitter["hanger"] },
+      { "livingroomLight", doc["livingroomLight"].as<int>() },
+      { "livingroomFan", doc["livingroomFan"].as<int>() },
+      { "bedroomLight", doc["bedroomLight"].as<int>() },
+      { "bathroomLight", doc["bathroomLight"].as<int>() },
+      { "kitchenLight", doc["kitchenLight"].as<int>() },
+      { "kitchenFan", doc["kitchenFan"].as<int>() },
+      { "frontDoor", doc["frontDoor"].as<int>() },
+      { "theftMode", doc["theftMode"].as<int>() },
+      { "theftDetect", doc["theftDetect"].as<int>() },
+      { "speaker", doc["speaker"].as<int>() },
+      { "gasLeak", doc["gasLeak"].as<int>() },
+      { "fire", doc["fire"].as<int>() },
+      { "hanger", doc["hanger"].as<int>() },
     };
     tb.sendAttributes(attributes, attribute_items);
 
-    Serial.println("Sent data to Thingsboard ");
+    Serial.println("\nSent data to Thingsboard ");
   }
   lastSend = millis();
 }
