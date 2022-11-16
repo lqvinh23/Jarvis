@@ -145,6 +145,10 @@ void loop()
   ReadSensor();
 }
 
+void checkDeviceState() {
+  
+}
+
 void ReadSensor() {
   // DHT11
   if ((unsigned long) (millis() - lastSend) > 60000) { 
