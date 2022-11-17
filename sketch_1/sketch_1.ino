@@ -27,7 +27,17 @@ StaticJsonDocument<1024> doc;
 #define flameSensor 41
 #define rainSensor 42
 #define servoHanger 43   
-#define hangerBtn 44           
+#define hangerBtn 44 
+#define ki_light 45
+#define ki_lightBtn 46     
+#define be_light 47
+#define be_lightBtn 48   
+#define ba_light 49
+#define ba_lightBtn 50
+#define ki_fan 51
+#define ki_fanBtn 52
+#define li_fan 53
+#define li_fanBtn 54
 
 float lastSend = 0;
 
@@ -67,6 +77,11 @@ void setup()
 {
   doc["frontDoor"] = 0;
   doc["livingroomLight"] = 0;
+  doc["livingroomFan"] = 0;
+  doc["kitchenLight"] = 0;
+  doc["kitchenFan"] = 0;
+  doc["bedroomLight"] = 0;
+  doc["bathroomLight"] = 0;
   doc["humidity"] = 0;
   doc["temperature"] = 0;
   doc["theftMode"] = 0;
@@ -93,6 +108,11 @@ void setup()
 
   pinMode(doorBtn, INPUT_PULLUP);
   pinMode(li_lightBtn, INPUT_PULLUP);
+  pinMode(li_fanBtn, INPUT_PULLUP);
+  pinMode(ki_lightBtn, INPUT_PULLUP);
+  pinMode(ki_fanBtn, INPUT_PULLUP);
+  pinMode(be_lightBtn, INPUT_PULLUP);
+  pinMode(ba_lightBtn, INPUT_PULLUP);
   pinMode(speakerBtn, INPUT_PULLUP);
   pinMode(hangerBtn, INPUT_PULLUP);
   pinMode(pirBtn, INPUT_PULLUP);
@@ -101,6 +121,11 @@ void setup()
   pinMode(pirSensor, INPUT);
   pinMode(rainSensor, INPUT);
   pinMode(li_light, OUTPUT);
+  pinMode(li_fan, OUTPUT);
+  pinMode(ki_light, OUTPUT);
+  pinMode(ki_fan, OUTPUT);
+  pinMode(be_light, OUTPUT);
+  pinMode(ba_light, OUTPUT);
   pinMode(theftMode, OUTPUT);
   pinMode(speaker, OUTPUT);
   pinMode(alertLight, OUTPUT);
@@ -118,6 +143,10 @@ void loop()
   ReadNumpad();
   ReadButton();
   ReadSensor();
+}
+
+void checkDeviceState() {
+  
 }
 
 void ReadSensor() {
@@ -140,8 +169,10 @@ void ReadSensor() {
   if (digitalRead(gasSensor) == HIGH) {
     doc["gasLeak"] = 1;
     doc["speaker"] = 1;
+    doc["kitchenFan"] = 1;
     digitalWrite(speaker, 1);
     digitalWrite(alertLight, 1);
+    digitalwrite(ki_fan, 1);
     serializeJson(doc, Serial1);
   }
 
@@ -149,8 +180,10 @@ void ReadSensor() {
   if (digitalRead(flameSensor) == HIGH) {
     doc["fire"] = 1;
     doc["speaker"] = 1;
+    doc["kitchenFan"] = 1;
     digitalWrite(speaker, 1);
     digitalWrite(alertLight, 1);
+    digitalwrite(ki_fan, 1);
     serializeJson(doc, Serial1);
   }
 
@@ -195,6 +228,46 @@ void ReadButton() {
     digitalWrite(li_light, doc["livingroomLight"]);
     serializeJson(doc, Serial1);
     while (digitalRead(li_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(li_fanBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["livingroomFan"] = !doc["livingroomFan"];
+    digitalWrite(li_fan, doc["livingroomFan"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(li_fanBtn) == LOW) {}
+  }
+
+  if (digitalRead(ki_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["kitchenLight"] = !doc["kitchenLight"];
+    digitalWrite(ki_light, doc["kitchenLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ki_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(ki_fanBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["kitchenFan"] = !doc["kitchenFan"];
+    digitalWrite(ki_fan, doc["kitchenFan"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ki_fanBtn) == LOW) {}
+  }
+
+  if (digitalRead(be_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["bedroomLight"] = !doc["bedroomLight"];
+    digitalWrite(be_light, doc["bedroomLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(be_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(ba_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["bathroomLight"] = !doc["bathroomLight"];
+    digitalWrite(ba_light, doc["bathroomLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ba_lightBtn) == LOW) {}
   }
 
   if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode

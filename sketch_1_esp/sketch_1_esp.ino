@@ -84,11 +84,22 @@ void SendDataToThingsboard()
       { "temperature", doc["temperature"].as<float>() },
       { "humidity",    doc["humidity"].as<float>() },
     };
-    tb.sendTelemetry(telemetry, telemetry_items);
+    // tb.sendTelemetry(telemetry, telemetry_items);
+    for (int i = 0; i < telemetry_items; i++) {
+      String payload = "{" + telemetry[i][0] + ":" + telemetry[i][1].as<String>() + "}";
+      char attributes[100];
+      payload.toCharArray( attributes, 100 );
+      client.publish( "v1/devices/me/attributes", attributes );
+    }
 
-    const int attribute_items = 8;
+    const int attribute_items = 13;
     Attribute attributes[attribute_items] = {
-      { "livingroomLight", doc["livingroom"].as<int>() },
+      { "livingroomLight", doc["livingroomLight"].as<int>() },
+      { "livingroomFan", doc["livingroomFan"].as<int>() },
+      { "bedroomLight", doc["bedroomLight"].as<int>() },
+      { "bathroomLight", doc["bathroomLight"].as<int>() },
+      { "kitchenLight", doc["kitchenLight"].as<int>() },
+      { "kitchenFan", doc["kitchenFan"].as<int>() },
       { "frontDoor", doc["frontDoor"].as<int>() },
       { "theftMode", doc["theftMode"].as<int>() },
       { "theftDetect", doc["theftDetect"].as<int>() },
@@ -97,11 +108,17 @@ void SendDataToThingsboard()
       { "fire", doc["fire"].as<int>() },
       { "hanger", doc["hanger"].as<int>() },
     };
-    tb.sendAttributes(attributes, attribute_items);
+    // tb.sendAttributes(attributes, attribute_items);
+    for (int i = 0; i < attribute_items; i++) {
+      String payload1 = "{" + attributes[i][0] + ":" + attributes[i][1].as<String>() + "}";
+      char attributes1[100];
+      payload1.toCharArray( attributes1, 100 );
+      client.publish( "v1/devices/me/attributes", attributes1 );
+    }
 
     Serial.println("\nSent data to Thingsboard ");
+    lastSend = millis();
   }
-  lastSend = millis();
 }
 
 void InitWiFi()
