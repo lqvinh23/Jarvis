@@ -117,8 +117,8 @@ void SendDataToThingsboard()
     }
 
     Serial.println("\nSent data to Thingsboard ");
+    lastSend = millis();
   }
-  lastSend = millis();
 }
 
 void InitWiFi()
