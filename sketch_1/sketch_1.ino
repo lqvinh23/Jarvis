@@ -154,41 +154,41 @@ void ReadSensor() {
     lastSend = millis();
   }
 
-//  // PIR
-//  if ((digitalRead(pirSensor) == HIGH) && (doc["theftMode"] == 1)) {
-//    doc["theftDetect"] = 1;
-//    digitalWrite(speaker, theftSpeaker);
-//    serializeJson(doc, Serial1);
-//  }
-//
-//  // Gas sensor
-//  if (digitalRead(gasSensor) == HIGH) {
-//    doc["gasLeak"] = 1;
-//    doc["speaker"] = 1;
-//    doc["kitchenFan"] = 1;
-//    digitalWrite(speaker, 1);
-//    digitalWrite(alertLight, 1);
-//    digitalWrite(ki_fan, 1);
-//    serializeJson(doc, Serial1);
-//  }
-//
-//  // Flame sensor
-//  if (digitalRead(flameSensor) == HIGH) {
-//    doc["fire"] = 1;
-//    doc["speaker"] = 1;
-//    doc["kitchenFan"] = 1;
-//    digitalWrite(speaker, 1);
-//    digitalWrite(alertLight, 1);
-//    digitalWrite(ki_fan, 1);
-//    serializeJson(doc, Serial1);
-//  }
-//
-//    // Rain sensor
-//  if (digitalRead(rainSensor) == LOW) {
-//    doc["hanger"] = 0;
-//    sg90Hanger.write(0);
-//    serializeJson(doc, Serial1);
-//  }
+  // PIR
+  if ((digitalRead(pirSensor) == HIGH) && (doc["theftMode"] == 1)) {
+    doc["theftDetect"] = 1;
+    digitalWrite(speaker, theftSpeaker);
+    serializeJson(doc, Serial1);
+  }
+
+  // Gas sensor
+  if (digitalRead(gasSensor) == HIGH) {
+    doc["gasLeak"] = 1;
+    doc["speaker"] = 1;
+    doc["kitchenFan"] = 1;
+    digitalWrite(speaker, 1);
+    digitalWrite(alertLight, 1);
+    digitalWrite(ki_fan, 1);
+    serializeJson(doc, Serial1);
+  }
+
+  // Flame sensor
+  if (digitalRead(flameSensor) == HIGH) {
+    doc["fire"] = 1;
+    doc["speaker"] = 1;
+    doc["kitchenFan"] = 1;
+    digitalWrite(speaker, 1);
+    digitalWrite(alertLight, 1);
+    digitalWrite(ki_fan, 1);
+    serializeJson(doc, Serial1);
+  }
+
+  // Rain sensor
+  if (digitalRead(rainSensor) == LOW) {
+    doc["hanger"] = 0;
+    sg90Hanger.write(0);
+    serializeJson(doc, Serial1);
+  }
 }
 
 void ReadButton() {
@@ -205,18 +205,18 @@ void ReadButton() {
     while (digitalRead(doorBtn) == LOW) {}
   }
 
-//  if ((digitalRead(hangerBtn) == LOW) && (digitalRead(rainSensor) == HIGH)) {  //Opening/closing the hanger by the push button
-//    delay(30);
-//    doc["hanger"] = !doc["hanger"];
-//    if (doc["hanger"]) {
-//      sg90Hanger.write(90);
-//    }
-//    else {
-//      sg90Hanger.write(0);
-//    }
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(hangerBtn) == LOW) {}
-//  }
+  if ((digitalRead(hangerBtn) == LOW) && (digitalRead(rainSensor) == HIGH)) {  //Opening/closing the hanger by the push button
+    delay(30);
+    doc["hanger"] = !doc["hanger"];
+    if (doc["hanger"]) {
+      sg90Hanger.write(90);
+    }
+    else {
+      sg90Hanger.write(0);
+    }
+    serializeJson(doc, Serial1);
+    while (digitalRead(hangerBtn) == LOW) {}
+  }
 
   if (digitalRead(li_lightBtn) == LOW) {  //Turning on/off by the push button
     delay(30);
@@ -226,66 +226,66 @@ void ReadButton() {
     while (digitalRead(li_lightBtn) == LOW) {}
   }
 
-//  if (digitalRead(li_fanBtn) == LOW) {  //Turning on/off by the push button
-//    delay(30);
-//    doc["livingroomFan"] = !doc["livingroomFan"];
-//    digitalWrite(li_fan, doc["livingroomFan"]);
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(li_fanBtn) == LOW) {}
-//  }
-//
-//  if (digitalRead(ki_lightBtn) == LOW) {  //Turning on/off by the push button
-//    delay(30);
-//    doc["kitchenLight"] = !doc["kitchenLight"];
-//    digitalWrite(ki_light, doc["kitchenLight"]);
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(ki_lightBtn) == LOW) {}
-//  }
-//
-//  if (digitalRead(ki_fanBtn) == LOW) {  //Turning on/off by the push button
-//    delay(30);
-//    doc["kitchenFan"] = !doc["kitchenFan"];
-//    digitalWrite(ki_fan, doc["kitchenFan"]);
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(ki_fanBtn) == LOW) {}
-//  }
-//
-//  if (digitalRead(be_lightBtn) == LOW) {  //Turning on/off by the push button
-//    delay(30);
-//    doc["bedroomLight"] = !doc["bedroomLight"];
-//    digitalWrite(be_light, doc["bedroomLight"]);
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(be_lightBtn) == LOW) {}
-//  }
-//
-//  if (digitalRead(ba_lightBtn) == LOW) {  //Turning on/off by the push button
-//    delay(30);
-//    doc["bathroomLight"] = !doc["bathroomLight"];
-//    digitalWrite(ba_light, doc["bathroomLight"]);
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(ba_lightBtn) == LOW) {}
-//  }
-//
-//  if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
-//    delay(30);
-//    doc["theftMode"] = !doc["theftMode"];
-//    doc["theftDetect"] = 0;
-//    digitalWrite(theftMode, doc["theftMode"]);
-//    theftSpeaker = 1;
-//    serializeJson(doc, Serial1);
-//    while (digitalRead(pirBtn) == LOW) {}
-//  }
-//
-//  if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
-//    doc["speaker"] = !doc["speaker"];
-//    if (!doc["speaker"]) {
-//      doc["gasLeak"] = 0;
-//      doc["fire"] = 0;
-//    }
-//    digitalWrite(alertLight, doc["speaker"]);
-//    digitalWrite(speaker, doc["speaker"]);
-//    serializeJson(doc, Serial1);
-//  }
+  if (digitalRead(li_fanBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["livingroomFan"] = !doc["livingroomFan"];
+    digitalWrite(li_fan, doc["livingroomFan"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(li_fanBtn) == LOW) {}
+  }
+
+  if (digitalRead(ki_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["kitchenLight"] = !doc["kitchenLight"];
+    digitalWrite(ki_light, doc["kitchenLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ki_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(ki_fanBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["kitchenFan"] = !doc["kitchenFan"];
+    digitalWrite(ki_fan, doc["kitchenFan"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ki_fanBtn) == LOW) {}
+  }
+
+  if (digitalRead(be_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["bedroomLight"] = !doc["bedroomLight"];
+    digitalWrite(be_light, doc["bedroomLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(be_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(ba_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["bathroomLight"] = !doc["bathroomLight"];
+    digitalWrite(ba_light, doc["bathroomLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ba_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
+    delay(30);
+    doc["theftMode"] = !doc["theftMode"];
+    doc["theftDetect"] = 0;
+    digitalWrite(theftMode, doc["theftMode"]);
+    theftSpeaker = 1;
+    serializeJson(doc, Serial1);
+    while (digitalRead(pirBtn) == LOW) {}
+  }
+
+  if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
+    doc["speaker"] = !doc["speaker"];
+    if (!doc["speaker"]) {
+      doc["gasLeak"] = 0;
+      doc["fire"] = 0;
+    }
+    digitalWrite(alertLight, doc["speaker"]);
+    digitalWrite(speaker, doc["speaker"]);
+    serializeJson(doc, Serial1);
+  }
 }
 
 void ReadNumpad() {
