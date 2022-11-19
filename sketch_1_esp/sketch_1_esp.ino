@@ -14,12 +14,13 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 WiFiClient wifiClient;
 WiFiClient espClient;
 
-ThingsBoardSized<256, 32> tb(espClient);
+ThingsBoardSized<128, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
 SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
+StaticJsonDocument<1024> receiver;
 StaticJsonDocument<1024> doc;
 
 float lastSend = 0;
@@ -41,7 +42,7 @@ void loop()
   }
   if (mega.available() > 0)
   {
-    DeserializationError err = deserializeJson(doc, mega);
+    DeserializationError err = deserializeJson(receiver, mega);
     if (err) {
       // Print error to the "debug" serial port
       Serial.print("deserializeJson() failed: ");
@@ -50,7 +51,22 @@ void loop()
       while (mega.available() > 0) mega.read();
       return;
     }
-    serializeJsonPretty(doc, Serial);
+    serializeJsonPretty(receiver, Serial);
+    doc["frontDoor"] = receiver["frontDoor"].as<int>();
+    doc["livingroomLight"] = receiver["livingroomLight"].as<int>();
+    doc["livingroomFan"] = receiver["livingroomFan"].as<int>();
+    doc["kitchenLight"] = receiver["kitchenLight"].as<int>();
+    doc["kitchenFan"] = receiver["kitchenFan"].as<int>();
+    doc["bedroomLight"] = receiver["bedroomLight"].as<int>();
+    doc["bathroomLight"] = receiver["bathroomLight"].as<int>();
+    doc["humidity"] = receiver["humidity"].as<float>();
+    doc["temperature"] = receiver["temperature"].as<float>();
+    doc["theftMode"] = receiver["theftMode"].as<int>();
+    doc["theftDetect"] = receiver["theftDetect"].as<int>();
+    doc["speaker"] = receiver["speaker"].as<int>();
+    doc["gasLeak"] = receiver["gasLeak"].as<int>();
+    doc["fire"] = receiver["fire"].as<int>();
+    doc["hanger"] = receiver["hanger"].as<int>();
     SendDataToThingsboard();
   }
 
@@ -80,32 +96,34 @@ void SendDataToThingsboard()
   {
     const int telemetry_items = 2;
     Telemetry telemetry[telemetry_items] = {
-      { "temperature", doc["temperature"].as<float>() },
-      { "humidity",    doc["humidity"].as<float>() },
+      // { "temperature", doc["temperature"].as<float>() },
+      // { "humidity",    doc["humidity"].as<float>() },
+      { "temperature", 23 },
+      { "humidity",    10 },
     };
     tb.sendTelemetry(telemetry, telemetry_items);
 
-    const int attribute_items = 13;
-    Attribute attributes[attribute_items] = {
-      { "livingroomLight", doc["livingroomLight"].as<int>() },
-      { "livingroomFan", doc["livingroomFan"].as<int>() },
-      { "bedroomLight", doc["bedroomLight"].as<int>() },
-      { "bathroomLight", doc["bathroomLight"].as<int>() },
-      { "kitchenLight", doc["kitchenLight"].as<int>() },
-      { "kitchenFan", doc["kitchenFan"].as<int>() },
-      { "frontDoor", doc["frontDoor"].as<int>() },
-      { "theftMode", doc["theftMode"].as<int>() },
-      { "theftDetect", doc["theftDetect"].as<int>() },
-      { "speaker", doc["speaker"].as<int>() },
-      { "gasLeak", doc["gasLeak"].as<int>() },
-      { "fire", doc["fire"].as<int>() },
-      { "hanger", doc["hanger"].as<int>() },
-    };
-    tb.sendAttributes(attributes, attribute_items);
+    // const int attribute_items = 13;
+    // Attribute attributes[attribute_items] = {
+    //   { "livingroomLight", doc["livingroomLight"].as<int>() },
+    //   { "livingroomFan", doc["livingroomFan"].as<int>() },
+    //   { "bedroomLight", doc["bedroomLight"].as<int>() },
+    //   { "bathroomLight", doc["bathroomLight"].as<int>() },
+    //   { "kitchenLight", doc["kitchenLight"].as<int>() },
+    //   { "kitchenFan", doc["kitchenFan"].as<int>() },
+    //   { "frontDoor", doc["frontDoor"].as<int>() },
+    //   { "theftMode", doc["theftMode"].as<int>() },
+    //   { "theftDetect", doc["theftDetect"].as<int>() },
+    //   { "speaker", doc["speaker"].as<int>() },
+    //   { "gasLeak", doc["gasLeak"].as<int>() },
+    //   { "fire", doc["fire"].as<int>() },
+    //   { "hanger", doc["hanger"].as<int>() },
+    // };
+    // tb.sendAttributes(attributes, attribute_items);
 
     Serial.println("\nSent data to Thingsboard ");
+    lastSend = millis();
   }
-  lastSend = millis();
 }
 
 void InitWiFi()
