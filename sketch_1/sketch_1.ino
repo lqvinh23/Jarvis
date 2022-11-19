@@ -7,22 +7,39 @@
 #include "DHT.h"
 
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
-Servo sg90;
-StaticJsonDocument<256> doc;
 
-#define servoPin 13              
+Servo sg90Door;
+Servo sg90Hanger;
+
+StaticJsonDocument<1024> doc;
+
+#define servoDoor 13              
 #define doorBtn 22                
 #define li_light 24
 #define li_lightBtn 26
 #define pirBtn 30
-#define pirPin 32
+#define pirSensor 32
 #define theftMode 34
 #define speaker 36
 #define speakerBtn 38
 #define gasSensor 39
 #define alertLight 40
+#define flameSensor 41
+#define rainSensor 42
+#define servoHanger 43   
+#define hangerBtn 44 
+#define ki_light 45
+#define ki_lightBtn 46     
+#define be_light 47
+#define be_lightBtn 48   
+#define ba_light 49
+#define ba_lightBtn 50
+#define ki_fan 51
+#define ki_fanBtn 52
+#define li_fan 53
+#define li_fanBtn 54
 
-float lastMillis = 0;
+float lastSend = 0;
 
 bool theftSpeaker = 0;
 
@@ -60,12 +77,19 @@ void setup()
 {
   doc["frontDoor"] = 0;
   doc["livingroomLight"] = 0;
+  doc["livingroomFan"] = 0;
+  doc["kitchenLight"] = 0;
+  doc["kitchenFan"] = 0;
+  doc["bedroomLight"] = 0;
+  doc["bathroomLight"] = 0;
   doc["humidity"] = 0;
   doc["temperature"] = 0;
   doc["theftMode"] = 0;
   doc["theftDetect"] = 0;
   doc["speaker"] = 0;
   doc["gasLeak"] = 0;
+  doc["fire"] = 0;
+  doc["hanger"] = 0;
   
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -77,16 +101,31 @@ void setup()
   lcd.backlight();
   lcd.print("Final project");      //What's written on the LCD you can change
   
-  sg90.attach(servoPin);
-  sg90.write(0);
+  sg90Door.attach(servoDoor);
+  sg90Door.write(0);
+  sg90Hanger.attach(servoHanger);
+  sg90Hanger.write(0);
 
   pinMode(doorBtn, INPUT_PULLUP);
   pinMode(li_lightBtn, INPUT_PULLUP);
-  pinMode(pirBtn, INPUT_PULLUP);
+  pinMode(li_fanBtn, INPUT_PULLUP);
+  pinMode(ki_lightBtn, INPUT_PULLUP);
+  pinMode(ki_fanBtn, INPUT_PULLUP);
+  pinMode(be_lightBtn, INPUT_PULLUP);
+  pinMode(ba_lightBtn, INPUT_PULLUP);
   pinMode(speakerBtn, INPUT_PULLUP);
-  pinMode(gasSensor, INPUT_PULLUP);
-  pinMode(pirPin, INPUT);
+  pinMode(hangerBtn, INPUT_PULLUP);
+  pinMode(pirBtn, INPUT_PULLUP);
+  pinMode(gasSensor, INPUT);
+  pinMode(flameSensor, INPUT);
+  pinMode(pirSensor, INPUT);
+  pinMode(rainSensor, INPUT);
   pinMode(li_light, OUTPUT);
+  pinMode(li_fan, OUTPUT);
+  pinMode(ki_light, OUTPUT);
+  pinMode(ki_fan, OUTPUT);
+  pinMode(be_light, OUTPUT);
+  pinMode(ba_light, OUTPUT);
   pinMode(theftMode, OUTPUT);
   pinMode(speaker, OUTPUT);
   pinMode(alertLight, OUTPUT);
@@ -107,29 +146,49 @@ void loop()
 }
 
 void ReadSensor() {
-  //DHT11
-  if ((unsigned long) (millis() - lastMillis) > 60000) { 
+  // DHT11
+  if ((unsigned long) (millis() - lastSend) > 60000) { 
     doc["humidity"] = dht.readHumidity();
     doc["temperature"] = dht.readTemperature();
     serializeJson(doc, Serial1);
-    lastMillis = millis();
+    lastSend = millis();
   }
 
-  //PIR
-  if (digitalRead(pirPin) == HIGH) {
-    doc["theftDetect"] = 1;
-    digitalWrite(speaker, theftSpeaker);
-    serializeJson(doc, Serial1);
-  }
-
-  // Gas sensor
-  if (digitalRead(gasSensor) == HIGH) {
-    doc["gasLeak"] = 1;
-    digitalWrite(speaker, 1);
-    doc["speaker"] = 1;
-    digitalWrite(alertLight, 1);
-    serializeJson(doc, Serial1);
-  }
+//  // PIR
+//  if ((digitalRead(pirSensor) == HIGH) && (doc["theftMode"] == 1)) {
+//    doc["theftDetect"] = 1;
+//    digitalWrite(speaker, theftSpeaker);
+//    serializeJson(doc, Serial1);
+//  }
+//
+//  // Gas sensor
+//  if (digitalRead(gasSensor) == HIGH) {
+//    doc["gasLeak"] = 1;
+//    doc["speaker"] = 1;
+//    doc["kitchenFan"] = 1;
+//    digitalWrite(speaker, 1);
+//    digitalWrite(alertLight, 1);
+//    digitalWrite(ki_fan, 1);
+//    serializeJson(doc, Serial1);
+//  }
+//
+//  // Flame sensor
+//  if (digitalRead(flameSensor) == HIGH) {
+//    doc["fire"] = 1;
+//    doc["speaker"] = 1;
+//    doc["kitchenFan"] = 1;
+//    digitalWrite(speaker, 1);
+//    digitalWrite(alertLight, 1);
+//    digitalWrite(ki_fan, 1);
+//    serializeJson(doc, Serial1);
+//  }
+//
+//    // Rain sensor
+//  if (digitalRead(rainSensor) == LOW) {
+//    doc["hanger"] = 0;
+//    sg90Hanger.write(0);
+//    serializeJson(doc, Serial1);
+//  }
 }
 
 void ReadButton() {
@@ -137,14 +196,27 @@ void ReadButton() {
     delay(30);
     doc["frontDoor"] = !doc["frontDoor"];
     if (doc["frontDoor"]) {
-      sg90.write(90);
+      sg90Door.write(90);
     }
     else {
-      sg90.write(0);
+      sg90Door.write(0);
     }
     serializeJson(doc, Serial1);
     while (digitalRead(doorBtn) == LOW) {}
   }
+
+//  if ((digitalRead(hangerBtn) == LOW) && (digitalRead(rainSensor) == HIGH)) {  //Opening/closing the hanger by the push button
+//    delay(30);
+//    doc["hanger"] = !doc["hanger"];
+//    if (doc["hanger"]) {
+//      sg90Hanger.write(90);
+//    }
+//    else {
+//      sg90Hanger.write(0);
+//    }
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(hangerBtn) == LOW) {}
+//  }
 
   if (digitalRead(li_lightBtn) == LOW) {  //Turning on/off by the push button
     delay(30);
@@ -154,25 +226,66 @@ void ReadButton() {
     while (digitalRead(li_lightBtn) == LOW) {}
   }
 
-  if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
-    delay(30);
-    doc["theftMode"] = !doc["theftMode"];
-    doc["theftDetect"] = 0;
-    digitalWrite(theftMode, doc["theftMode"]);
-    theftSpeaker = 1;
-    serializeJson(doc, Serial1);
-    while (digitalRead(pirBtn) == LOW) {}
-  }
-
-  if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
-    doc["speaker"] = !doc["speaker"];
-    if (!doc["speaker"]) {
-      doc["gasLeak"] = 0;
-      digitalWrite(alertLight, 0);
-    }
-    digitalWrite(speaker, doc["speaker"]);
-    serializeJson(doc, Serial1);
-  }
+//  if (digitalRead(li_fanBtn) == LOW) {  //Turning on/off by the push button
+//    delay(30);
+//    doc["livingroomFan"] = !doc["livingroomFan"];
+//    digitalWrite(li_fan, doc["livingroomFan"]);
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(li_fanBtn) == LOW) {}
+//  }
+//
+//  if (digitalRead(ki_lightBtn) == LOW) {  //Turning on/off by the push button
+//    delay(30);
+//    doc["kitchenLight"] = !doc["kitchenLight"];
+//    digitalWrite(ki_light, doc["kitchenLight"]);
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(ki_lightBtn) == LOW) {}
+//  }
+//
+//  if (digitalRead(ki_fanBtn) == LOW) {  //Turning on/off by the push button
+//    delay(30);
+//    doc["kitchenFan"] = !doc["kitchenFan"];
+//    digitalWrite(ki_fan, doc["kitchenFan"]);
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(ki_fanBtn) == LOW) {}
+//  }
+//
+//  if (digitalRead(be_lightBtn) == LOW) {  //Turning on/off by the push button
+//    delay(30);
+//    doc["bedroomLight"] = !doc["bedroomLight"];
+//    digitalWrite(be_light, doc["bedroomLight"]);
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(be_lightBtn) == LOW) {}
+//  }
+//
+//  if (digitalRead(ba_lightBtn) == LOW) {  //Turning on/off by the push button
+//    delay(30);
+//    doc["bathroomLight"] = !doc["bathroomLight"];
+//    digitalWrite(ba_light, doc["bathroomLight"]);
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(ba_lightBtn) == LOW) {}
+//  }
+//
+//  if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
+//    delay(30);
+//    doc["theftMode"] = !doc["theftMode"];
+//    doc["theftDetect"] = 0;
+//    digitalWrite(theftMode, doc["theftMode"]);
+//    theftSpeaker = 1;
+//    serializeJson(doc, Serial1);
+//    while (digitalRead(pirBtn) == LOW) {}
+//  }
+//
+//  if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
+//    doc["speaker"] = !doc["speaker"];
+//    if (!doc["speaker"]) {
+//      doc["gasLeak"] = 0;
+//      doc["fire"] = 0;
+//    }
+//    digitalWrite(alertLight, doc["speaker"]);
+//    digitalWrite(speaker, doc["speaker"]);
+//    serializeJson(doc, Serial1);
+//  }
 }
 
 void ReadNumpad() {
@@ -200,7 +313,7 @@ void ReadNumpad() {
   }
 
   if (keypressed == 'C') { 
-    sg90.write(0);
+    sg90Door.write(0);
     doc["frontDoor"] = 0;
     serializeJson(doc, Serial1);
   }
@@ -231,12 +344,14 @@ void GetDataFromESP() {
         Serial1.read();
       return;
     }
+    serializeJsonPretty(doc, Serial);
+
     digitalWrite(li_light, doc["livingroomLight"]);
     if (doc["frontDoor"]) {
-      sg90.write(90);
+      sg90Door.write(90);
     }
     else {
-      sg90.write(0);
+      sg90Door.write(0);
     }
     digitalWrite(speaker, doc["speaker"]);
   }
@@ -365,7 +480,7 @@ void GetNewCode2() {                        //This is exactly like the GetNewCod
 void OpenDoor() {            //Lock opening function open for 3s
   lcd.clear();
   lcd.print("Welcome");       //With a message printed
-  sg90.write(90);
+  sg90Door.write(90);
   delay(3000);
-  sg90.write(0);
+  sg90Door.write(0);
 }

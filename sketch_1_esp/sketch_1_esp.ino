@@ -14,15 +14,18 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 WiFiClient wifiClient;
 WiFiClient espClient;
 
-ThingsBoardSized<128, 32> tb(espClient);
+ThingsBoardSized<256, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
 SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
-StaticJsonDocument<256> doc;
+StaticJsonDocument<1024> doc;
 
 float lastSend = 0;
+
+String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
+String telemetries[2] = {"temperature", "humidity"};
 
 void setup()
 {
@@ -51,6 +54,7 @@ void loop()
         mega.read();
       return;
     }
+    serializeJsonPretty(doc, Serial);
     SendDataToThingsboard();
   }
 
@@ -78,27 +82,44 @@ void SendDataToThingsboard()
 {
   if ( millis() - lastSend > 1000 )
   {
-    const int telemetry_items = 2;
-    Telemetry telemetry[telemetry_items] = {
-      { "temperature", doc["temperature"].as<float>() },
-      { "humidity",    doc["humidity"].as<float>() },
+    float telemetry_val[2] = {
+      doc["temperature"].as<float>(),
+      doc["humidity"].as<float>(),
     };
-    tb.sendTelemetry(telemetry, telemetry_items);
 
-    const int attribute_items = 6;
-    Attribute attributes[attribute_items] = {
-      { "livingroomLight", doc["livingroom"].as<int>() },
-      { "frontDoor", doc["frontDoor"].as<int>() },
-      { "theftMode", doc["theftMode"].as<int>() },
-      { "theftDetect", doc["theftDetect"].as<int>() },
-      { "speaker", doc["speaker"].as<int>() },
-      { "gasLeak", doc["gasLeak"].as<int>() },
+    for (int i = 0; i < 2; i++) {
+      String payload = "{" + telemetries[i] + ":" + (String)telemetry_val[i] + "}";
+      char attributes[100];
+      payload.toCharArray( attributes, 100 );
+      client.publish( "v1/devices/me/telemetry", attributes );
+    }
+
+    int attribute_val[13] = {
+      doc["frontDoor"].as<int>(), 
+      doc["livingroomLight"].as<int>(), 
+      doc["livingroomFan"].as<int>(),
+      doc["kitchenLight"].as<int>(),
+      doc["kitchenFan"].as<int>(),
+      doc["bedroomLight"].as<int>(),
+      doc["bathroomLight"].as<int>(),
+      doc["theftMode"].as<int>(),
+      doc["theftDetect"].as<int>(),
+      doc["speaker"].as<int>(),
+      doc["gasLeak"].as<int>(),
+      doc["fire"].as<int>(),
+      doc["hanger"].as<int>(),
     };
-    tb.sendAttributes(attributes, attribute_items);
 
-    Serial.println("Sent data to Thingsboard ");
+    for (int i = 0; i < 13; i++) {
+      String payload1 = "{" + devices[i] + ":" + (String)attribute_val[i] + "}";
+      char attributes1[100];
+      payload1.toCharArray( attributes1, 100 );
+      client.publish( "v1/devices/me/attributes", attributes1 );
+    }
+
+    Serial.println("\nSent data to Thingsboard ");
+    lastSend = millis();
   }
-  lastSend = millis();
 }
 
 void InitWiFi()
