@@ -13,8 +13,8 @@ Servo sg90Hanger;
 
 StaticJsonDocument<1024> doc;
 
-#define servoDoor 13
-#define doorBtn 22
+#define servoDoor 13              
+#define doorBtn 22                
 #define li_light 24
 #define li_lightBtn 26
 #define pirBtn 30
@@ -93,14 +93,14 @@ void setup()
   
   Serial.begin(9600);
   Serial1.begin(9600);
-
+  
   dht.begin();
-
+  
   lcd.init();
   lcd.begin(16, 2);
   lcd.backlight();
   lcd.print("Final project");      //What's written on the LCD you can change
-
+  
   sg90Door.attach(servoDoor);
   sg90Door.write(0);
   sg90Hanger.attach(servoHanger);
@@ -145,10 +145,6 @@ void loop()
   ReadSensor();
 }
 
-void checkDeviceState() {
-  
-}
-
 void ReadSensor() {
   // DHT11
   if ((unsigned long) (millis() - lastSend) > 60000) { 
@@ -172,7 +168,7 @@ void ReadSensor() {
 //    doc["kitchenFan"] = 1;
 //    digitalWrite(speaker, 1);
 //    digitalWrite(alertLight, 1);
-//    digitalwrite(ki_fan, 1);
+//    digitalWrite(ki_fan, 1);
 //    serializeJson(doc, Serial1);
 //  }
 //
@@ -183,7 +179,7 @@ void ReadSensor() {
 //    doc["kitchenFan"] = 1;
 //    digitalWrite(speaker, 1);
 //    digitalWrite(alertLight, 1);
-//    digitalwrite(ki_fan, 1);
+//    digitalWrite(ki_fan, 1);
 //    serializeJson(doc, Serial1);
 //  }
 //
@@ -316,7 +312,7 @@ void ReadNumpad() {
     lcd.print("Jarvis Home");                 //When done it returns to standby mode
   }
 
-  if (keypressed == 'C') {
+  if (keypressed == 'C') { 
     sg90Door.write(0);
     doc["frontDoor"] = 0;
     serializeJson(doc, Serial1);

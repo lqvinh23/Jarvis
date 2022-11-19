@@ -14,16 +14,18 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 WiFiClient wifiClient;
 WiFiClient espClient;
 
-ThingsBoardSized<128, 32> tb(espClient);
+ThingsBoardSized<256, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
 SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
-StaticJsonDocument<1024> receiver;
 StaticJsonDocument<1024> doc;
 
 float lastSend = 0;
+
+String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
+String telemetries[2] = {"temperature", "humidity"};
 
 void setup()
 {
@@ -42,31 +44,17 @@ void loop()
   }
   if (mega.available() > 0)
   {
-    DeserializationError err = deserializeJson(receiver, mega);
+    DeserializationError err = deserializeJson(doc, mega);
     if (err) {
       // Print error to the "debug" serial port
       Serial.print("deserializeJson() failed: ");
       Serial.println(err.c_str());
       // Flush all bytes in the "link" serial port buffer
-      while (mega.available() > 0) mega.read();
+      while (mega.available() > 0)
+        mega.read();
       return;
     }
-    serializeJsonPretty(receiver, Serial);
-    doc["frontDoor"] = receiver["frontDoor"].as<int>();
-    doc["livingroomLight"] = receiver["livingroomLight"].as<int>();
-    doc["livingroomFan"] = receiver["livingroomFan"].as<int>();
-    doc["kitchenLight"] = receiver["kitchenLight"].as<int>();
-    doc["kitchenFan"] = receiver["kitchenFan"].as<int>();
-    doc["bedroomLight"] = receiver["bedroomLight"].as<int>();
-    doc["bathroomLight"] = receiver["bathroomLight"].as<int>();
-    doc["humidity"] = receiver["humidity"].as<float>();
-    doc["temperature"] = receiver["temperature"].as<float>();
-    doc["theftMode"] = receiver["theftMode"].as<int>();
-    doc["theftDetect"] = receiver["theftDetect"].as<int>();
-    doc["speaker"] = receiver["speaker"].as<int>();
-    doc["gasLeak"] = receiver["gasLeak"].as<int>();
-    doc["fire"] = receiver["fire"].as<int>();
-    doc["hanger"] = receiver["hanger"].as<int>();
+    serializeJsonPretty(doc, Serial);
     SendDataToThingsboard();
   }
 
@@ -94,40 +82,36 @@ void SendDataToThingsboard()
 {
   if ( millis() - lastSend > 1000 )
   {
-    const int telemetry_items = 2;
-    Telemetry telemetry[telemetry_items] = {
-      { "temperature", doc["temperature"].as<float>() },
-      { "humidity",    doc["humidity"].as<float>() },
-      // { "temperature", 23 },
-      // { "humidity",    10 },
+    float telemetry_val[2] = {
+      doc["temperature"].as<float>(),
+      doc["humidity"].as<float>(),
     };
-    // tb.sendTelemetry(telemetry, telemetry_items);
-    for (int i = 0; i < telemetry_items; i++) {
-      String payload = "{" + telemetry[i][0] + ":" + telemetry[i][1].as<String>() + "}";
+
+    for (int i = 0; i < 2; i++) {
+      String payload = "{" + telemetries[i] + ":" + (String)telemetry_val[i] + "}";
       char attributes[100];
       payload.toCharArray( attributes, 100 );
-      client.publish( "v1/devices/me/attributes", attributes );
+      client.publish( "v1/devices/me/telemetry", attributes );
     }
 
-    const int attribute_items = 13;
-    Attribute attributes[attribute_items] = {
-      { "livingroomLight", doc["livingroomLight"].as<int>() },
-      { "livingroomFan", doc["livingroomFan"].as<int>() },
-      { "bedroomLight", doc["bedroomLight"].as<int>() },
-      { "bathroomLight", doc["bathroomLight"].as<int>() },
-      { "kitchenLight", doc["kitchenLight"].as<int>() },
-      { "kitchenFan", doc["kitchenFan"].as<int>() },
-      { "frontDoor", doc["frontDoor"].as<int>() },
-      { "theftMode", doc["theftMode"].as<int>() },
-      { "theftDetect", doc["theftDetect"].as<int>() },
-      { "speaker", doc["speaker"].as<int>() },
-      { "gasLeak", doc["gasLeak"].as<int>() },
-      { "fire", doc["fire"].as<int>() },
-      { "hanger", doc["hanger"].as<int>() },
+    int attribute_val[13] = {
+      doc["frontDoor"].as<int>(), 
+      doc["livingroomLight"].as<int>(), 
+      doc["livingroomFan"].as<int>(),
+      doc["kitchenLight"].as<int>(),
+      doc["kitchenFan"].as<int>(),
+      doc["bedroomLight"].as<int>(),
+      doc["bathroomLight"].as<int>(),
+      doc["theftMode"].as<int>(),
+      doc["theftDetect"].as<int>(),
+      doc["speaker"].as<int>(),
+      doc["gasLeak"].as<int>(),
+      doc["fire"].as<int>(),
+      doc["hanger"].as<int>(),
     };
-    // tb.sendAttributes(attributes, attribute_items);
-    for (int i = 0; i < attribute_items; i++) {
-      String payload1 = "{" + attributes[i][0] + ":" + attributes[i][1].as<String>() + "}";
+
+    for (int i = 0; i < 13; i++) {
+      String payload1 = "{" + devices[i] + ":" + (String)attribute_val[i] + "}";
       char attributes1[100];
       payload1.toCharArray( attributes1, 100 );
       client.publish( "v1/devices/me/attributes", attributes1 );
