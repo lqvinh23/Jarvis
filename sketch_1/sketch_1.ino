@@ -13,8 +13,8 @@ Servo sg90Hanger;
 
 StaticJsonDocument<1024> doc;
 
-#define servoDoor 13              
-#define doorBtn 22                
+#define servoDoor 13
+#define doorBtn 22
 #define li_light 24
 #define li_lightBtn 26
 #define pirBtn 30
@@ -26,12 +26,12 @@ StaticJsonDocument<1024> doc;
 #define alertLight 40
 #define flameSensor 41
 #define rainSensor 42
-#define servoHanger 43   
-#define hangerBtn 44 
+#define servoHanger 43
+#define hangerBtn 44
 #define ki_light 45
-#define ki_lightBtn 46     
+#define ki_lightBtn 46
 #define be_light 47
-#define be_lightBtn 48   
+#define be_lightBtn 48
 #define ba_light 49
 #define ba_lightBtn 50
 #define ki_fan 51
@@ -90,17 +90,17 @@ void setup()
   doc["gasLeak"] = 0;
   doc["fire"] = 0;
   doc["hanger"] = 0;
-  
+
   Serial.begin(9600);
   Serial1.begin(9600);
-  
+
   dht.begin();
-  
+
   lcd.init();
   lcd.begin(16, 2);
   lcd.backlight();
   lcd.print("Final project");      //What's written on the LCD you can change
-  
+
   sg90Door.attach(servoDoor);
   sg90Door.write(0);
   sg90Hanger.attach(servoHanger);
@@ -147,7 +147,7 @@ void loop()
 
 void ReadSensor() {
   // DHT11
-  if ((unsigned long) (millis() - lastSend) > 60000) { 
+  if ((unsigned long) (millis() - lastSend) > 10000) {
     doc["humidity"] = dht.readHumidity();
     doc["temperature"] = dht.readTemperature();
     serializeJson(doc, Serial1);
@@ -157,7 +157,9 @@ void ReadSensor() {
   // PIR
   if ((digitalRead(pirSensor) == HIGH) && (doc["theftMode"] == 1)) {
     doc["theftDetect"] = 1;
+    doc["speaker"] = theftSpeaker;
     digitalWrite(speaker, theftSpeaker);
+    digitalWrite(alertLight, theftSpeaker);
     serializeJson(doc, Serial1);
   }
 
@@ -277,6 +279,7 @@ void ReadButton() {
   }
 
   if (digitalRead(speakerBtn) == LOW) { //Turning on/off speaker
+    delay(30);
     doc["speaker"] = !doc["speaker"];
     if (!doc["speaker"]) {
       doc["gasLeak"] = 0;
@@ -285,7 +288,7 @@ void ReadButton() {
     digitalWrite(alertLight, doc["speaker"]);
     digitalWrite(speaker, doc["speaker"]);
     serializeJson(doc, Serial1);
-  }
+    while (digitalRead(speakerBtn) == LOW) {}
 }
 
 void ReadNumpad() {
@@ -312,7 +315,7 @@ void ReadNumpad() {
     lcd.print("Jarvis Home");                 //When done it returns to standby mode
   }
 
-  if (keypressed == 'C') { 
+  if (keypressed == 'C') {
     sg90Door.write(0);
     doc["frontDoor"] = 0;
     serializeJson(doc, Serial1);
@@ -326,7 +329,7 @@ void ReadNumpad() {
     lcd.clear();
     lcd.print("Anti-theft: ");
     lcd.setCursor(12, 0);
-    lcd.print(doc["theftMode"]?"On":"Off");
+    lcd.print(doc["theftMode"] ? "On" : "Off");
     delay(2000);
     lcd.clear();
     lcd.print("Jarvis Home");
