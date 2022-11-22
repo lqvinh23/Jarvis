@@ -43,8 +43,7 @@ float lastSend = 0;
 
 bool theftSpeaker = 0;
 
-int numberOfDevice = 13;
-String devices[numberOfDevice] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
+String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
 
 const int DHTPIN = 28;
 const int DHTTYPE = DHT11;
@@ -78,24 +77,11 @@ Keypad myKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, numRows, numCols)
 
 void setup()
 {
-  for (int i = 0; i < numberOfDevice; i++) {
+  for (int i = 0; i < 13; i++) {
     doc[devices[i]] = 0;
   }
   doc["humidity"] = 0;
   doc["temperature"] = 0;
-  // doc["frontDoor"] = 0;
-  // doc["livingroomLight"] = 0;
-  // doc["livingroomFan"] = 0;
-  // doc["kitchenLight"] = 0;
-  // doc["kitchenFan"] = 0;
-  // doc["bedroomLight"] = 0;
-  // doc["bathroomLight"] = 0;
-  // doc["theftMode"] = 0;
-  // doc["theftDetect"] = 0;
-  // doc["speaker"] = 0;
-  // doc["gasLeak"] = 0;
-  // doc["fire"] = 0;
-  // doc["hanger"] = 0;
 
   Serial.begin(9600);
   Serial1.begin(9600);
