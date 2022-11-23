@@ -22,6 +22,9 @@
 #include "fd_forward.h"
 #include "fr_forward.h"
 
+#include "soc/soc.h" //disable brownout problems
+#include "soc/rtc_cntl_reg.h"  //disable brownout problems
+
 #define ENROLL_CONFIRM_TIMES 5
 #define FACE_ID_SAVE_NUMBER 7
 

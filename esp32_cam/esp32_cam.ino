@@ -13,13 +13,9 @@
 //#define CAMERA_MODEL_M5STACK_PSRAM
 //#define CAMERA_MODEL_M5STACK_WIDE
 #define CAMERA_MODEL_AI_THINKER
-#define Relay 2
 #define Red 13
 #define Green 12
 #include "camera_pins.h"
-
-#define WIFI_AP "Spiderman"
-#define WIFI_PASSWORD "vinh2223"
 
 const char* ssid = "Spiderman"; //Wifi Name SSID
 const char* password = "vinh2223"; //WIFI Password
@@ -42,21 +38,19 @@ WiFiClient espClient;
 ThingsBoardSized<256, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
-SoftwareSerial mega(D2, D3); //rx,tx
+// SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
 StaticJsonDocument<1024> doc;
 /* ---------------------------------------------------- */
 
 void setup() {
-  pinMode(Relay,OUTPUT);
   pinMode(Red,OUTPUT);
   pinMode(Green,OUTPUT);
-  digitalWrite(Relay,LOW);
   digitalWrite(Red,HIGH);
   digitalWrite(Green,LOW);
   
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.setDebugOutput(true);
   Serial.println();
 
@@ -144,9 +138,17 @@ void loop() {
     reconnect();
   }
 
+  FaceRecognize();
+
+  client.loop();
+  tb.loop();
+}
+
+void FaceRecognize() {
   if (matchFace==true && activateRelay==false) {
     activateRelay=true;
-    digitalWrite(Relay,HIGH);
+    doc["frontDoor"] = 1;
+    serializeJsonPretty(doc, Serial);
     digitalWrite(Green,HIGH);
     digitalWrite(Red,LOW);
     prevMillis=millis();
@@ -154,69 +156,65 @@ void loop() {
   if (activateRelay == true && millis()-prevMillis > interval) {
     activateRelay=false;
     matchFace=false;
-    digitalWrite(Relay,LOW);
+    doc["frontDoor"] = 0;
+    serializeJsonPretty(doc, Serial);
     digitalWrite(Green,LOW);
     digitalWrite(Red,HIGH);
   }
-
-  client.loop();
-  tb.loop();
 }
 
 void callback_sub(const char* topic, byte* payload, unsigned int length)
 {
-  Serial.println("Yes");
-  StaticJsonDocument<256> data;
-  deserializeJson(data, payload, length);
+  // StaticJsonDocument<256> data;
+  // deserializeJson(data, payload, length);
 
-  String method1 = data["method"].as<String>();
-  doc[method1] = (int)data["params"];
-  serializeJson(doc, mega);
+  // String method1 = data["method"].as<String>();
+  // doc[method1] = (int)data["params"];
 
-  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
-  char attributes01[100];
-  payload01.toCharArray( attributes01, 100 );
-  client.publish( "v1/devices/me/attributes", attributes01 );
+  // String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
+  // char attributes01[100];
+  // payload01.toCharArray( attributes01, 100 );
+  // client.publish( "v1/devices/me/attributes", attributes01 );
 }
 
 void SendDataToThingsboard()
 {
   if ( millis() - lastSend > 1000 )
   {
-    float telemetry_val[2] = {
-      doc["temperature"].as<float>(),
-      doc["humidity"].as<float>(),
-    };
+    // float telemetry_val[2] = {
+    //   doc["temperature"].as<float>(),
+    //   doc["humidity"].as<float>(),
+    // };
 
-    for (int i = 0; i < 2; i++) {
-      String payload = "{" + telemetries[i] + ":" + (String)telemetry_val[i] + "}";
-      char attributes[100];
-      payload.toCharArray( attributes, 100 );
-      client.publish( "v1/devices/me/telemetry", attributes );
-    }
+    // for (int i = 0; i < 2; i++) {
+    //   String payload = "{" + telemetries[i] + ":" + (String)telemetry_val[i] + "}";
+    //   char attributes[100];
+    //   payload.toCharArray( attributes, 100 );
+    //   client.publish( "v1/devices/me/telemetry", attributes );
+    // }
 
-    int attribute_val[numberOfDevice] = {
-      doc["frontDoor"].as<int>(), 
-      doc["livingroomLight"].as<int>(), 
-      doc["livingroomFan"].as<int>(),
-      doc["kitchenLight"].as<int>(),
-      doc["kitchenFan"].as<int>(),
-      doc["bedroomLight"].as<int>(),
-      doc["bathroomLight"].as<int>(),
-      doc["theftMode"].as<int>(),
-      doc["theftDetect"].as<int>(),
-      doc["speaker"].as<int>(),
-      doc["gasLeak"].as<int>(),
-      doc["fire"].as<int>(),
-      doc["hanger"].as<int>(),
-    };
+    // int attribute_val[numberOfDevice] = {
+    //   doc["frontDoor"].as<int>(), 
+    //   doc["livingroomLight"].as<int>(), 
+    //   doc["livingroomFan"].as<int>(),
+    //   doc["kitchenLight"].as<int>(),
+    //   doc["kitchenFan"].as<int>(),
+    //   doc["bedroomLight"].as<int>(),
+    //   doc["bathroomLight"].as<int>(),
+    //   doc["theftMode"].as<int>(),
+    //   doc["theftDetect"].as<int>(),
+    //   doc["speaker"].as<int>(),
+    //   doc["gasLeak"].as<int>(),
+    //   doc["fire"].as<int>(),
+    //   doc["hanger"].as<int>(),
+    // };
 
-    for (int i = 0; i < numberOfDevice; i++) {
-      String payload1 = "{" + devices[i] + ":" + (String)attribute_val[i] + "}";
-      char attributes1[100];
-      payload1.toCharArray( attributes1, 100 );
-      client.publish( "v1/devices/me/attributes", attributes1 );
-    }
+    // for (int i = 0; i < numberOfDevice; i++) {
+    //   String payload1 = "{" + devices[i] + ":" + (String)attribute_val[i] + "}";
+    //   char attributes1[100];
+    //   payload1.toCharArray( attributes1, 100 );
+    //   client.publish( "v1/devices/me/attributes", attributes1 );
+    // }
 
     Serial.println("\nSent data to Thingsboard ");
     lastSend = millis();
@@ -227,7 +225,7 @@ void reconnect() {
   // Loop until we're reconnected
   status = WiFi.status();
   if ( status != WL_CONNECTED) {
-    WiFi.begin(WIFI_AP, WIFI_PASSWORD);
+    WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
