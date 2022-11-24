@@ -2,6 +2,8 @@
 //ESP Camera Artificial Intelligence Face Detection Automatic Door Lock
 #include "esp_camera.h"
 #include <WiFi.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 // Select camera model
 //#define CAMERA_MODEL_WROVER_KIT
@@ -19,9 +21,26 @@ const char* password = "vinh2223"; //WIFI Password
 void startCameraServer();
 
 bool matchFace = false;
+int face_id = -1;
 bool activateRelay = false;
 long prevMillis=0;
 int interval = 5000;
+
+/* ---------------------Thingsboard-------------------- */
+char Thingsboard_Server[] = "demo.thingsboard.io";
+#define TOKEN "MispEwH7Jt4A4EbbSAhe"
+
+
+WiFiClient wifiClient;
+
+PubSubClient client(wifiClient);
+
+int status = WL_IDLE_STATUS;
+
+StaticJsonDocument<1024> doc;
+
+float lastSend = 0;
+/* ---------------------------------------------------- */
 
 void setup() {
   pinMode(Red,OUTPUT);
@@ -110,6 +129,8 @@ void setup() {
 
 void loop() {
   FaceRecognize();
+
+  client.loop();
 }
 
 void FaceRecognize() {
@@ -117,6 +138,7 @@ void FaceRecognize() {
     activateRelay=true;
     digitalWrite(4,HIGH);
     digitalWrite(Red,LOW);
+    SendDataToThingsboard(face_id);
     prevMillis=millis();
   }
   if (activateRelay == true && millis()-prevMillis > interval) {
@@ -124,5 +146,61 @@ void FaceRecognize() {
     matchFace=false;
     digitalWrite(4,LOW);
     digitalWrite(Red,HIGH);
+  }
+}
+
+void callback_sub(const char* topic, byte* payload, unsigned int length)
+{
+  // StaticJsonDocument<256> data;
+  // deserializeJson(data, payload, length);
+
+  // String method1 = data["method"].as<String>();
+  // doc[method1] = (int)data["params"];
+
+  // String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
+  // char attributes01[100];
+  // payload01.toCharArray( attributes01, 100 );
+  // client.publish( "v1/devices/me/attributes", attributes01 );
+}
+
+void SendDataToThingsboard(face_id)
+{
+  if ( millis() - lastSend > 1000 )
+  {
+    String people[2] = {Vinh, Tung};
+    String payload = "{\"People\" :" + people[face_id] + "}";
+    char attributes[100];
+    payload.toCharArray( attributes, 100 );
+    client.publish( "v1/devices/me/attributes", attributes );
+
+    String payload1 = "{\"Status\" : \"Success\"}";
+    char attributes1[100];
+    payload1.toCharArray( attributes1, 100 );
+    client.publish( "v1/devices/me/attributes", attributes1 );
+    Serial.println("\nSent data to Thingsboard ");
+    lastSend = millis();
+  }
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  status = WiFi.status();
+  if ( status != WL_CONNECTED) {
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("Connected to AP");
+  }
+  Serial.print("Connecting to Thingsboard node ...");
+  if ( client.connect("ESP8266 Device", TOKEN, NULL) ) {
+    Serial.println( "[DONE]" );
+    client.subscribe("v1/devices/me/rpc/request/+");
+  } else {
+    Serial.print( "[FAILED]" );
+    Serial.println( " : retrying in 5 seconds]" );
+    // Wait 5 seconds before retrying
+    delay( 5000 );
   }
 }
