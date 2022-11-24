@@ -3,8 +3,6 @@
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include "ThingsBoard.h"
-#include <SoftwareSerial.h>
 #include <ArduinoJson.h>
 
 // Select camera model
@@ -23,6 +21,7 @@ const char* password = "vinh2223"; //WIFI Password
 void startCameraServer();
 
 bool matchFace = false;
+int face_id = -1;
 bool activateRelay = false;
 long prevMillis=0;
 int interval = 5000;
@@ -33,15 +32,14 @@ char Thingsboard_Server[] = "demo.thingsboard.io";
 
 
 WiFiClient wifiClient;
-WiFiClient espClient;
 
-ThingsBoardSized<256, 32> tb(espClient);
 PubSubClient client(wifiClient);
 
-// SoftwareSerial mega(D2, D3); //rx,tx
 int status = WL_IDLE_STATUS;
 
 StaticJsonDocument<1024> doc;
+
+float lastSend = 0;
 /* ---------------------------------------------------- */
 
 void setup() {
@@ -141,7 +139,6 @@ void loop() {
   FaceRecognize();
 
   client.loop();
-  tb.loop();
 }
 
 void FaceRecognize() {
@@ -151,6 +148,7 @@ void FaceRecognize() {
     serializeJsonPretty(doc, Serial);
     digitalWrite(Green,HIGH);
     digitalWrite(Red,LOW);
+    SendDataToThingsboard(face_id);
     prevMillis=millis();
   }
   if (activateRelay == true && millis()-prevMillis > interval) {
@@ -177,45 +175,20 @@ void callback_sub(const char* topic, byte* payload, unsigned int length)
   // client.publish( "v1/devices/me/attributes", attributes01 );
 }
 
-void SendDataToThingsboard()
+void SendDataToThingsboard(face_id)
 {
   if ( millis() - lastSend > 1000 )
   {
-    // float telemetry_val[2] = {
-    //   doc["temperature"].as<float>(),
-    //   doc["humidity"].as<float>(),
-    // };
+    String people[2] = {Vinh, Tung};
+    String payload = "{\"People\" :" + people[face_id] + "}";
+    char attributes[100];
+    payload.toCharArray( attributes, 100 );
+    client.publish( "v1/devices/me/attributes", attributes );
 
-    // for (int i = 0; i < 2; i++) {
-    //   String payload = "{" + telemetries[i] + ":" + (String)telemetry_val[i] + "}";
-    //   char attributes[100];
-    //   payload.toCharArray( attributes, 100 );
-    //   client.publish( "v1/devices/me/telemetry", attributes );
-    // }
-
-    // int attribute_val[numberOfDevice] = {
-    //   doc["frontDoor"].as<int>(), 
-    //   doc["livingroomLight"].as<int>(), 
-    //   doc["livingroomFan"].as<int>(),
-    //   doc["kitchenLight"].as<int>(),
-    //   doc["kitchenFan"].as<int>(),
-    //   doc["bedroomLight"].as<int>(),
-    //   doc["bathroomLight"].as<int>(),
-    //   doc["theftMode"].as<int>(),
-    //   doc["theftDetect"].as<int>(),
-    //   doc["speaker"].as<int>(),
-    //   doc["gasLeak"].as<int>(),
-    //   doc["fire"].as<int>(),
-    //   doc["hanger"].as<int>(),
-    // };
-
-    // for (int i = 0; i < numberOfDevice; i++) {
-    //   String payload1 = "{" + devices[i] + ":" + (String)attribute_val[i] + "}";
-    //   char attributes1[100];
-    //   payload1.toCharArray( attributes1, 100 );
-    //   client.publish( "v1/devices/me/attributes", attributes1 );
-    // }
-
+    String payload1 = "{\"Status\" : \"Success\"}";
+    char attributes1[100];
+    payload1.toCharArray( attributes1, 100 );
+    client.publish( "v1/devices/me/attributes", attributes1 );
     Serial.println("\nSent data to Thingsboard ");
     lastSend = millis();
   }
