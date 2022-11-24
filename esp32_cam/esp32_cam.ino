@@ -15,15 +15,15 @@
 #define Green 12
 #include "camera_pins.h"
 
-const char* ssid = "Spiderman"; //Wifi Name SSID
-const char* password = "vinh2223"; //WIFI Password
+const char* ssid = "HP-ZBOOKG1"; //Wifi Name SSID
+const char* password = "23102000"; //WIFI Password
 
 void startCameraServer();
 
 bool matchFace = false;
-int face_id = -1;
+int matched_id = -1;
 bool activateRelay = false;
-long prevMillis=0;
+long prevMillis = 0;
 int interval = 5000;
 
 /* ---------------------Thingsboard-------------------- */
@@ -43,11 +43,11 @@ float lastSend = 0;
 /* ---------------------------------------------------- */
 
 void setup() {
-  pinMode(Red,OUTPUT);
-  pinMode(Green,OUTPUT);
-  digitalWrite(Red,HIGH);
-  digitalWrite(Green,LOW);
-  
+  pinMode(Red, OUTPUT);
+  pinMode(Green, OUTPUT);
+  digitalWrite(Red, HIGH);
+  digitalWrite(Green, LOW);
+
   Serial.begin(9600);
   Serial.setDebugOutput(true);
   Serial.println();
@@ -74,7 +74,7 @@ void setup() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
   //init with high specs to pre-allocate larger buffers
-  if(psramFound()){
+  if (psramFound()) {
     config.frame_size = FRAMESIZE_UXGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
@@ -125,6 +125,9 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
+
+  client.setServer(Thingsboard_Server, 1883);
+  //  client.setCallback(callback_sub);
 }
 
 void loop() {
@@ -134,49 +137,53 @@ void loop() {
 }
 
 void FaceRecognize() {
-  if (matchFace==true && activateRelay==false) {
-    activateRelay=true;
-    digitalWrite(4,HIGH);
-    digitalWrite(Red,LOW);
-    SendDataToThingsboard(face_id);
-    prevMillis=millis();
+  if (matchFace == true && activateRelay == false) {
+    activateRelay = true;
+    digitalWrite(4, HIGH);
+    digitalWrite(Red, LOW);
+    Serial.println(matched_id);
+    SendDataToThingsboard(matched_id);
+    prevMillis = millis();
   }
-  if (activateRelay == true && millis()-prevMillis > interval) {
-    activateRelay=false;
-    matchFace=false;
-    digitalWrite(4,LOW);
-    digitalWrite(Red,HIGH);
+  if (activateRelay == true && millis() - prevMillis > interval) {
+    activateRelay = false;
+    matchFace = false;
+    digitalWrite(4, LOW);
+    digitalWrite(Red, HIGH);
   }
 }
 
-void callback_sub(const char* topic, byte* payload, unsigned int length)
+//void callback_sub(const char* topic, byte* payload, unsigned int length)
+//{
+//  StaticJsonDocument<256> data;
+//  deserializeJson(data, payload, length);
+//
+//  String method1 = data["method"].as<String>();
+//  doc[method1] = (int)data["params"];
+//
+//  String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
+//  char attributes01[100];
+//  payload01.toCharArray( attributes01, 100 );
+//  client.publish( "v1/devices/me/attributes", attributes01 );
+//}
+
+void SendDataToThingsboard(int face_id)
 {
-  // StaticJsonDocument<256> data;
-  // deserializeJson(data, payload, length);
-
-  // String method1 = data["method"].as<String>();
-  // doc[method1] = (int)data["params"];
-
-  // String payload01 = "{" + method1 + ":" + doc[method1].as<String>() + "}";
-  // char attributes01[100];
-  // payload01.toCharArray( attributes01, 100 );
-  // client.publish( "v1/devices/me/attributes", attributes01 );
-}
-
-void SendDataToThingsboard(face_id)
-{
+  if (!client.connected()) {
+    reconnect();
+  }
   if ( millis() - lastSend > 1000 )
   {
-    String people[2] = {Vinh, Tung};
+    String people[2] = {"Vinh", "Tung"};
     String payload = "{\"People\" :" + people[face_id] + "}";
     char attributes[100];
     payload.toCharArray( attributes, 100 );
-    client.publish( "v1/devices/me/attributes", attributes );
+    client.publish( "v1/devices/me/telemetry", attributes );
 
     String payload1 = "{\"Status\" : \"Success\"}";
     char attributes1[100];
     payload1.toCharArray( attributes1, 100 );
-    client.publish( "v1/devices/me/attributes", attributes1 );
+    client.publish( "v1/devices/me/telemetry", attributes1 );
     Serial.println("\nSent data to Thingsboard ");
     lastSend = millis();
   }
