@@ -37,7 +37,7 @@ PubSubClient client(wifiClient);
 
 int status = WL_IDLE_STATUS;
 
-StaticJsonDocument<1024> doc;
+StaticJsonDocument<512> doc;
 
 float lastSend = 0;
 /* ---------------------------------------------------- */
@@ -128,11 +128,11 @@ void setup() {
 
   client.setServer(Thingsboard_Server, 1883);
   //  client.setCallback(callback_sub);
+  reconnect();
 }
 
 void loop() {
   FaceRecognize();
-
   client.loop();
 }
 
@@ -141,6 +141,8 @@ void FaceRecognize() {
     activateRelay = true;
     digitalWrite(4, HIGH);
     digitalWrite(Red, LOW);
+    doc["frontDoor"] = 1;
+    serializeJsonPretty(doc, Serial);
     Serial.println(matched_id);
     SendDataToThingsboard(matched_id);
     prevMillis = millis();
@@ -148,6 +150,8 @@ void FaceRecognize() {
   if (activateRelay == true && millis() - prevMillis > interval) {
     activateRelay = false;
     matchFace = false;
+    doc["frontDoor"] = 0;
+    serializeJsonPretty(doc, Serial);
     digitalWrite(4, LOW);
     digitalWrite(Red, HIGH);
   }
@@ -169,9 +173,9 @@ void FaceRecognize() {
 
 void SendDataToThingsboard(int face_id)
 {
-  if (!client.connected()) {
-    reconnect();
-  }
+  // if (!client.connected()) {
+  //   reconnect();
+  // }
   if ( millis() - lastSend > 1000 )
   {
     String people[2] = {"Vinh", "Tung"};

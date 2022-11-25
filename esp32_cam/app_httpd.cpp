@@ -66,6 +66,7 @@ static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 
 extern boolean matchFace;
+extern int matched_id;
 
 static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     memset(filter, 0, sizeof(ra_filter_t));
@@ -168,7 +169,7 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
 
 static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_boxes){
     dl_matrix3du_t *aligned_face = NULL;
-    int matched_id = 0;
+    matched_id = 0;
 
     aligned_face = dl_matrix3du_alloc(1, FACE_WIDTH, FACE_HEIGHT, 3);
     if(!aligned_face){
