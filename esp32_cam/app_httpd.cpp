@@ -22,6 +22,9 @@
 #include "fd_forward.h"
 #include "fr_forward.h"
 
+#include "soc/soc.h" //disable brownout problems
+#include "soc/rtc_cntl_reg.h"  //disable brownout problems
+
 #define ENROLL_CONFIRM_TIMES 5
 #define FACE_ID_SAVE_NUMBER 7
 
@@ -63,6 +66,7 @@ static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 
 extern boolean matchFace;
+extern int matched_id;
 
 static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     memset(filter, 0, sizeof(ra_filter_t));
@@ -165,7 +169,7 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
 
 static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_boxes){
     dl_matrix3du_t *aligned_face = NULL;
-    int matched_id = 0;
+    matched_id = 0;
 
     aligned_face = dl_matrix3du_alloc(1, FACE_WIDTH, FACE_HEIGHT, 3);
     if(!aligned_face){
@@ -287,10 +291,10 @@ static esp_err_t capture_handler(httpd_req_t *req){
             face_id = run_face_recognition(image_matrix, net_boxes);
         }
         draw_face_boxes(image_matrix, net_boxes, face_id);
-        free(net_boxes->score);
-        free(net_boxes->box);
-        free(net_boxes->landmark);
-        free(net_boxes);
+        dl_lib_free(net_boxes->score);
+        dl_lib_free(net_boxes->box);
+        dl_lib_free(net_boxes->landmark);
+        dl_lib_free(net_boxes);
     }
 
     jpg_chunking_t jchunk = {req, 0};
@@ -386,10 +390,10 @@ static esp_err_t stream_handler(httpd_req_t *req){
                                 }
                                 fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
-                                free(net_boxes->score);
-                                free(net_boxes->box);
-                                free(net_boxes->landmark);
-                                free(net_boxes);
+                                dl_lib_free(net_boxes->score);
+                                dl_lib_free(net_boxes->box);
+                                dl_lib_free(net_boxes->landmark);
+                                dl_lib_free(net_boxes);
                             }
                             if(!fmt2jpg(image_matrix->item, fb->width*fb->height*3, fb->width, fb->height, PIXFORMAT_RGB888, 90, &_jpg_buf, &_jpg_buf_len)){
                                 Serial.println("fmt2jpg failed");
@@ -649,13 +653,13 @@ void startCameraServer(){
     
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
     
-    Serial.printf("Starting web server on port: '%d'\n", config.server_port);
-    if (httpd_start(&camera_httpd, &config) == ESP_OK) {
-        httpd_register_uri_handler(camera_httpd, &index_uri);
-        httpd_register_uri_handler(camera_httpd, &cmd_uri);
-        httpd_register_uri_handler(camera_httpd, &status_uri);
-        httpd_register_uri_handler(camera_httpd, &capture_uri);
-    }
+   Serial.printf("Starting web server on port: '%d'\n", config.server_port);
+   if (httpd_start(&camera_httpd, &config) == ESP_OK) {
+       httpd_register_uri_handler(camera_httpd, &index_uri);
+       httpd_register_uri_handler(camera_httpd, &cmd_uri);
+       httpd_register_uri_handler(camera_httpd, &status_uri);
+       httpd_register_uri_handler(camera_httpd, &capture_uri);
+   }
 
     config.server_port += 1;
     config.ctrl_port += 1;
