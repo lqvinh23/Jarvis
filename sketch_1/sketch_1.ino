@@ -85,6 +85,7 @@ void setup()
 
   Serial.begin(9600);
   Serial1.begin(9600);
+  Serial2.begin(9600);
 
   dht.begin();
 
@@ -132,6 +133,7 @@ void setup()
 void loop()
 {
   GetDataFromESP();
+  GetDataFromCam();
   ReadNumpad();
   ReadButton();
   ReadSensor();
@@ -330,6 +332,26 @@ void ReadNumpad() {
     lcd.clear();
     lcd.print("Jarvis Home");
     serializeJson(doc, Serial1);
+  }
+}
+
+void GetDataFromCam() {
+  if (Serial2.available()) {
+    DeserializationError err = deserializeJson(doc, Serial2);
+    if (err) {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(err.c_str());
+      while (Serial2.available() > 0)
+        Serial2.read();
+      return;
+    }
+    serializeJsonPretty(doc, Serial);
+    if (doc["frontDoor"]) {
+      sg90Door.write(90);
+    }
+    else {
+      sg90Door.write(0);
+    }
   }
 }
 
