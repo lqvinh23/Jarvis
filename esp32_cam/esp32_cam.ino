@@ -183,7 +183,7 @@ void SendDataToThingsboard(int face_id)
     char attributes1[100];
     payload1.toCharArray( attributes1, 100 );
     client.publish( "v1/devices/me/telemetry", attributes1 );
-    Serial.println("\nSent data to Thingsboard ");
+//    Serial.println("\nSent data to Thingsboard ");
     lastSend = millis();
   }
 }
