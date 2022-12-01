@@ -24,7 +24,7 @@ bool matchFace = false;
 int matched_id = -1;
 bool activateRelay = false;
 long prevMillis = 0;
-int interval = 5000;
+int interval = 10000;
 
 /* ---------------------Thingsboard-------------------- */
 char Thingsboard_Server[] = "demo.thingsboard.io";
@@ -49,7 +49,7 @@ void setup() {
   digitalWrite(Green, LOW);
 
   Serial.begin(9600);
-  Serial.setDebugOutput(true);
+  Serial.setDebugOutput(false);
   Serial.println();
 
   camera_config_t config;
@@ -139,11 +139,8 @@ void loop() {
 void FaceRecognize() {
   if (matchFace == true && activateRelay == false) {
     activateRelay = true;
-    digitalWrite(4, HIGH);
-    digitalWrite(Red, LOW);
     doc["frontDoor"] = 1;
-    serializeJsonPretty(doc, Serial);
-    Serial.println(matched_id);
+    serializeJson(doc, Serial);
     SendDataToThingsboard(matched_id);
     prevMillis = millis();
   }
@@ -151,9 +148,7 @@ void FaceRecognize() {
     activateRelay = false;
     matchFace = false;
     doc["frontDoor"] = 0;
-    serializeJsonPretty(doc, Serial);
-    digitalWrite(4, LOW);
-    digitalWrite(Red, HIGH);
+    serializeJson(doc, Serial);
   }
 }
 
@@ -188,7 +183,7 @@ void SendDataToThingsboard(int face_id)
     char attributes1[100];
     payload1.toCharArray( attributes1, 100 );
     client.publish( "v1/devices/me/telemetry", attributes1 );
-    Serial.println("\nSent data to Thingsboard ");
+//    Serial.println("\nSent data to Thingsboard ");
     lastSend = millis();
   }
 }

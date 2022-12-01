@@ -13,31 +13,37 @@ Servo sg90Hanger;
 
 StaticJsonDocument<1024> doc;
 
-#define servoDoor 13
-#define doorBtn 22
-#define li_light 24
-#define li_lightBtn 26
-#define pirBtn 30
-#define pirSensor 32
-#define theftMode 34
-#define speaker 36
-#define speakerBtn 38
-#define gasSensor 39
-#define alertLight 40
-#define flameSensor 41
-#define rainSensor 42
-#define servoHanger 43
-#define hangerBtn 44
-#define ki_light 45
-#define ki_lightBtn 46
-#define be_light 47
-#define be_lightBtn 48
-#define ba_light 49
-#define ba_lightBtn 50
-#define ki_fan 51
-#define ki_fanBtn 52
-#define li_fan 53
-#define li_fanBtn 54
+// Lights
+#define li_light 22
+#define ki_light 24
+#define be_light 26
+#define ba_light 28
+#define theftMode 30
+#define alertLight 32
+// Fans
+#define li_fan 34
+#define ki_fan 36
+// Btn
+#define li_lightBtn 38
+#define ki_lightBtn 40
+#define be_lightBtn 42
+#define ba_lightBtn 44
+#define li_fanBtn 46
+#define ki_fanBtn 48
+#define doorBtn 50
+#define hangerBtn 52
+#define pirBtn 53
+#define speakerBtn 51
+// Speaker
+#define speaker 49
+// Servo
+#define servoDoor 47
+#define servoHanger 45
+// Sensors
+#define pirSensor 54
+#define gasSensor 55
+#define rainSensor 57
+// #define flameSensor 58
 
 float lastSend = 0;
 
@@ -45,7 +51,7 @@ bool theftSpeaker = 0;
 
 String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
 
-const int DHTPIN = 28;
+const int DHTPIN = 56;
 const int DHTTYPE = DHT11;
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -85,6 +91,7 @@ void setup()
 
   Serial.begin(9600);
   Serial1.begin(9600);
+  Serial2.begin(9600);
 
   dht.begin();
 
@@ -132,6 +139,7 @@ void setup()
 void loop()
 {
   GetDataFromESP();
+  GetDataFromCam();
   ReadNumpad();
   ReadButton();
   ReadSensor();
@@ -326,6 +334,26 @@ void ReadNumpad() {
     lcd.clear();
     lcd.print("Jarvis Home");
     serializeJson(doc, Serial1);
+  }
+}
+
+void GetDataFromCam() {
+  if (Serial2.available()) {
+    DeserializationError err = deserializeJson(doc, Serial2);
+    if (err) {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(err.c_str());
+      while (Serial2.available() > 0)
+        Serial2.read();
+      return;
+    }
+    serializeJsonPretty(doc, Serial);
+    if (doc["frontDoor"]) {
+      sg90Door.write(90);
+    }
+    else {
+      sg90Door.write(0);
+    }
   }
 }
 
