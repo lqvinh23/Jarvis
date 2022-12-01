@@ -13,31 +13,37 @@ Servo sg90Hanger;
 
 StaticJsonDocument<1024> doc;
 
-#define servoDoor 13
-#define doorBtn 22
-#define li_light 24
-#define li_lightBtn 26
-#define pirBtn 30
-#define pirSensor 32
-#define theftMode 34
-#define speaker 36
-#define speakerBtn 38
-#define gasSensor 39
-#define alertLight 40
-#define flameSensor 41
-#define rainSensor 42
-#define servoHanger 43
-#define hangerBtn 44
-#define ki_light 45
-#define ki_lightBtn 46
-#define be_light 47
-#define be_lightBtn 48
-#define ba_light 49
-#define ba_lightBtn 50
-#define ki_fan 51
-#define ki_fanBtn 52
-#define li_fan 53
-#define li_fanBtn 54
+// Lights
+#define li_light 22
+#define ki_light 24
+#define be_light 26
+#define ba_light 28
+#define theftMode 30
+#define alertLight 32
+// Fans
+#define li_fan 34
+#define ki_fan 36
+// Btn
+#define li_lightBtn 38
+#define ki_lightBtn 40
+#define be_lightBtn 42
+#define ba_lightBtn 44
+#define li_fanBtn 46
+#define ki_fanBtn 48
+#define doorBtn 50
+#define hangerBtn 52
+#define pirBtn 53
+#define speakerBtn 51
+// Speaker
+#define speaker 49
+// Servo
+#define servoDoor 47
+#define servoHanger 45
+// Sensors
+#define pirSensor 54
+#define gasSensor 55
+#define rainSensor 57
+// #define flameSensor 58
 
 float lastSend = 0;
 
@@ -45,7 +51,7 @@ bool theftSpeaker = 0;
 
 String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
 
-const int DHTPIN = 28;
+const int DHTPIN = 56;
 const int DHTTYPE = DHT11;
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -241,30 +247,30 @@ void ReadButton() {
     while (digitalRead(ki_lightBtn) == LOW) {}
   }
 
-  //  if (digitalRead(ki_fanBtn) == LOW) {  //Turning on/off by the push button
-  //    delay(30);
-  //    doc["kitchenFan"] = !doc["kitchenFan"];
-  //    digitalWrite(ki_fan, doc["kitchenFan"]);
-  //    serializeJson(doc, Serial1);
-  //    while (digitalRead(ki_fanBtn) == LOW) {}
-  //  }
-  //
-  //  if (digitalRead(be_lightBtn) == LOW) {  //Turning on/off by the push button
-  //    delay(30);
-  //    doc["bedroomLight"] = !doc["bedroomLight"];
-  //    digitalWrite(be_light, doc["bedroomLight"]);
-  //    serializeJson(doc, Serial1);
-  //    while (digitalRead(be_lightBtn) == LOW) {}
-  //  }
-  //
-  //  if (digitalRead(ba_lightBtn) == LOW) {  //Turning on/off by the push button
-  //    delay(30);
-  //    doc["bathroomLight"] = !doc["bathroomLight"];
-  //    digitalWrite(ba_light, doc["bathroomLight"]);
-  //    serializeJson(doc, Serial1);
-  //    while (digitalRead(ba_lightBtn) == LOW) {}
-  //  }
-  //
+  if (digitalRead(ki_fanBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["kitchenFan"] = !doc["kitchenFan"];
+    digitalWrite(ki_fan, doc["kitchenFan"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ki_fanBtn) == LOW) {}
+  }
+
+  if (digitalRead(be_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["bedroomLight"] = !doc["bedroomLight"];
+    digitalWrite(be_light, doc["bedroomLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(be_lightBtn) == LOW) {}
+  }
+
+  if (digitalRead(ba_lightBtn) == LOW) {  //Turning on/off by the push button
+    delay(30);
+    doc["bathroomLight"] = !doc["bathroomLight"];
+    digitalWrite(ba_light, doc["bathroomLight"]);
+    serializeJson(doc, Serial1);
+    while (digitalRead(ba_lightBtn) == LOW) {}
+  }
+
   if (digitalRead(pirBtn) == LOW) {  //Turning on/off anti-theft mode
     delay(30);
     doc["theftMode"] = !doc["theftMode"];
