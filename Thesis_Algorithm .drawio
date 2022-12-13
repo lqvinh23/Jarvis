@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-12-13T10:08:32.318Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.46" etag="vHPOezjCyb1bdVBhRQ-O" version="20.6.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-12-13T10:12:32.447Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.46" etag="kc0EUvjlOsUlLKA2Qrqs" version="20.6.2" type="github">
   <diagram id="8T_DmFEaWRe2VI1obKvT" name="Page-1">
-    <mxGraphModel dx="1209" dy="781" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
+    <mxGraphModel dx="1209" dy="781" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -900,22 +900,22 @@
         <mxCell id="ziZAyYgAh9MztOyzgz17-35" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=17;" edge="1" parent="1" source="ziZAyYgAh9MztOyzgz17-2" target="ziZAyYgAh9MztOyzgz17-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ziZAyYgAh9MztOyzgz17-46" value="&lt;p style=&quot;line-height: 19px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="ziZAyYgAh9MztOyzgz17-46" value="&lt;p style=&quot;line-height: 19px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="3926.67" y="30" width="293.33" height="780" as="geometry" />
         </mxCell>
-        <mxCell id="ziZAyYgAh9MztOyzgz17-55" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;esp32-cam libraries&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="ziZAyYgAh9MztOyzgz17-55" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;esp32-cam libraries&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="3926.666448812225" y="30" width="293.3332244061126" height="36.77108433734939" as="geometry" />
         </mxCell>
-        <mxCell id="ziZAyYgAh9MztOyzgz17-31" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeWidth=1;" vertex="1" parent="1">
+        <mxCell id="ziZAyYgAh9MztOyzgz17-31" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeWidth=1;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="3633.33" y="30" width="293.33" height="780" as="geometry" />
         </mxCell>
-        <mxCell id="ziZAyYgAh9MztOyzgz17-29" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="ziZAyYgAh9MztOyzgz17-29" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="3340" y="30" width="293.33" height="780" as="geometry" />
         </mxCell>
-        <mxCell id="ziZAyYgAh9MztOyzgz17-32" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;esp32_cam.ino&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="ziZAyYgAh9MztOyzgz17-32" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;esp32_cam.ino&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="3340" y="30" width="293.3332244061126" height="36.77108433734939" as="geometry" />
         </mxCell>
-        <mxCell id="ziZAyYgAh9MztOyzgz17-33" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;app_httpd.cpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="ziZAyYgAh9MztOyzgz17-33" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;app_httpd.cpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="3633.333224406113" y="30" width="293.3332244061126" height="36.77108433734939" as="geometry" />
         </mxCell>
         <mxCell id="ziZAyYgAh9MztOyzgz17-81" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=13;" edge="1" parent="1" source="ziZAyYgAh9MztOyzgz17-78" target="ziZAyYgAh9MztOyzgz17-79">
