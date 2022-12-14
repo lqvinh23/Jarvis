@@ -116,7 +116,7 @@ void setup()
   pinMode(hangerBtn, INPUT_PULLUP);
   pinMode(pirBtn, INPUT_PULLUP);
   pinMode(gasSensor, INPUT);
-  pinMode(flameSensor, INPUT);
+  // pinMode(flameSensor, INPUT);
   pinMode(pirSensor, INPUT);
   pinMode(rainSensor, INPUT);
   pinMode(li_light, OUTPUT);
@@ -175,15 +175,15 @@ void ReadSensor() {
   }
 
   // Flame sensor
-  if (digitalRead(flameSensor) == HIGH) {
-    doc["fire"] = 1;
-    doc["speaker"] = 1;
-    doc["kitchenFan"] = 1;
-    digitalWrite(speaker, 1);
-    digitalWrite(alertLight, 1);
-    digitalWrite(ki_fan, 1);
-    serializeJson(doc, Serial1);
-  }
+  // if (digitalRead(flameSensor) == HIGH) {
+  //   doc["fire"] = 1;
+  //   doc["speaker"] = 1;
+  //   doc["kitchenFan"] = 1;
+  //   digitalWrite(speaker, 1);
+  //   digitalWrite(alertLight, 1);
+  //   digitalWrite(ki_fan, 1);
+  //   serializeJson(doc, Serial1);
+  // }
 
   // Rain sensor
   if (digitalRead(rainSensor) == LOW) {
@@ -289,6 +289,7 @@ void ReadButton() {
     digitalWrite(speaker, doc["speaker"]);
     serializeJson(doc, Serial1);
     while (digitalRead(speakerBtn) == LOW) {}
+  }
 }
 
 void ReadNumpad() {
