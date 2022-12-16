@@ -116,7 +116,7 @@ void setup()
   pinMode(hangerBtn, INPUT_PULLUP);
   pinMode(pirBtn, INPUT_PULLUP);
   pinMode(gasSensor, INPUT);
-  pinMode(flameSensor, INPUT);
+  // pinMode(flameSensor, INPUT);
   pinMode(pirSensor, INPUT);
   pinMode(rainSensor, INPUT);
   pinMode(li_light, OUTPUT);
