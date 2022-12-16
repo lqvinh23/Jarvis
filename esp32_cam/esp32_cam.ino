@@ -173,17 +173,22 @@ void SendDataToThingsboard(int face_id)
   // }
   if ( millis() - lastSend > 1000 )
   {
+//     String people[2] = {"Vinh", "Tung"};
+//     String payload = "{\"People\" :" + people[face_id] + "}";
+//     char attributes[100];
+//     payload.toCharArray( attributes, 100 );
+//     client.publish( "v1/devices/me/telemetry", attributes );
+
+//     String payload1 = "{\"Status\" : \"Success\"}";
+//     char attributes1[100];
+//     payload1.toCharArray( attributes1, 100 );
+//     client.publish( "v1/devices/me/telemetry", attributes1 );
+//     lastSend = millis();
     String people[2] = {"Vinh", "Tung"};
-    String payload = "{\"People\" :" + people[face_id] + "}";
+    String payload = "{\"People\" :" + people[face_id] + ", \"Status\" : \"Success\"}";
     char attributes[100];
     payload.toCharArray( attributes, 100 );
     client.publish( "v1/devices/me/telemetry", attributes );
-
-    String payload1 = "{\"Status\" : \"Success\"}";
-    char attributes1[100];
-    payload1.toCharArray( attributes1, 100 );
-    client.publish( "v1/devices/me/telemetry", attributes1 );
-//    Serial.println("\nSent data to Thingsboard ");
     lastSend = millis();
   }
 }
