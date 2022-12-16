@@ -4,8 +4,8 @@
 #include <SoftwareSerial.h>
 #include <ArduinoJson.h>
 
-#define WIFI_AP "Spiderman"
-#define WIFI_PASSWORD "vinh2223"
+#define WIFI_AP "HP-ZBOOKG1"
+#define WIFI_PASSWORD "23102000"
 
 char Thingsboard_Server[] = "demo.thingsboard.io";
 #define TOKEN "MispEwH7Jt4A4EbbSAhe"
