@@ -24,8 +24,8 @@ StaticJsonDocument<1024> doc;
 
 float lastSend = 0;
 
-String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
-String telemetries[2] = {"temperature", "humidity"};
+String devices[14] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger", "autoAir"};
+String telemetries[3] = {"temperature", "humidity", "tempSetting"};
 
 void setup()
 {
@@ -82,19 +82,19 @@ void SendDataToThingsboard()
 {
   if ( millis() - lastSend > 1000 )
   {
-    float telemetry_val[2] = {
+    float telemetry_val[3] = {
       doc["temperature"].as<float>(),
       doc["humidity"].as<float>(),
     };
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
       String payload = "{" + telemetries[i] + ":" + (String)telemetry_val[i] + "}";
       char attributes[100];
       payload.toCharArray( attributes, 100 );
       client.publish( "v1/devices/me/telemetry", attributes );
     }
 
-    int attribute_val[13] = {
+    int attribute_val[14] = {
       doc["frontDoor"].as<int>(), 
       doc["livingroomLight"].as<int>(), 
       doc["livingroomFan"].as<int>(),
@@ -108,9 +108,10 @@ void SendDataToThingsboard()
       doc["gasLeak"].as<int>(),
       doc["fire"].as<int>(),
       doc["hanger"].as<int>(),
+      doc["autoAir"].as<int>(),
     };
 
-    for (int i = 0; i < 13; i++) {
+    for (int i = 0; i < 14; i++) {
       String payload1 = "{" + devices[i] + ":" + (String)attribute_val[i] + "}";
       char attributes1[100];
       payload1.toCharArray( attributes1, 100 );
