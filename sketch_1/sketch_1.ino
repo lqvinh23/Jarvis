@@ -49,7 +49,7 @@ float lastSend = 0;
 
 bool theftSpeaker = 0;
 
-String devices[13] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger"};
+String devices[14] = {"frontDoor", "livingroomLight", "livingroomFan", "kitchenLight", "kitchenFan", "bedroomLight", "bathroomLight", "theftMode", "theftDetect", "speaker", "gasLeak", "fire", "hanger", "autoAir"};
 
 const int DHTPIN = 56;
 const int DHTTYPE = DHT11;
@@ -83,11 +83,12 @@ Keypad myKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, numRows, numCols)
 
 void setup()
 {
-  for (int i = 0; i < 13; i++) {
+  for (int i = 0; i < 14; i++) {
     doc[devices[i]] = 0;
   }
   doc["humidity"] = 0;
   doc["temperature"] = 0;
+  doc["tempSetting"] = 35;
 
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -150,6 +151,16 @@ void ReadSensor() {
   if ((unsigned long) (millis() - lastSend) > 10000) {
     doc["humidity"] = dht.readHumidity();
     doc["temperature"] = dht.readTemperature();
+    if (doc["autoAir"]) {
+      if (doc["temperature"] >= doc["tempSetting"]) {
+        doc["livingroomFan"] = 1;
+        digitalWrite(li_fan, 1);
+      }
+      else {
+        doc["livingroomFan"] = 0;
+        digitalWrite(li_fan, 0);
+      }
+    }
     serializeJson(doc, Serial1);
     lastSend = millis();
   }
